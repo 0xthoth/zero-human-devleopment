@@ -1,0 +1,174 @@
+{
+  "meta": {
+    "lastTouchedVersion": "2026.3.13",
+    "lastTouchedAt": "2026-03-18T00:00:00.000Z"
+  },
+  "agents": {
+    "defaults": {
+      "contextPruning": {
+        "mode": "cache-ttl",
+        "ttl": "1h"
+      },
+      "compaction": {
+        "mode": "safeguard"
+      },
+      "heartbeat": {
+        "every": "30m"
+      },
+      "sandbox": {
+        "mode": "off"
+      }
+    },
+    "list": [
+      {
+        "id": "owner",
+        "default": true,
+        "name": "Owner",
+        "workspace": "/home/node/.openclaw/workspace-owner",
+        "agentDir": "/home/node/.openclaw/agents/owner/agent",
+        "model": "anthropic/claude-opus-4-6",
+        "groupChat": {
+          "mentionPatterns": [
+            "@owner",
+            "@Owner"
+          ]
+        }
+      },
+      {
+        "id": "qa-lead",
+        "name": "QA Lead",
+        "workspace": "/home/node/.openclaw/workspace-qa-lead",
+        "agentDir": "/home/node/.openclaw/agents/qa-lead/agent",
+        "model": "anthropic/claude-sonnet-4-5",
+        "groupChat": {
+          "mentionPatterns": [
+            "@qa",
+            "@QA",
+            "@qa-lead"
+          ]
+        }
+      },
+      {
+        "id": "frontend",
+        "name": "Frontend Dev",
+        "workspace": "/home/node/.openclaw/workspace-frontend",
+        "agentDir": "/home/node/.openclaw/agents/frontend/agent",
+        "model": "anthropic/claude-sonnet-4-5",
+        "groupChat": {
+          "mentionPatterns": [
+            "@frontend",
+            "@Frontend",
+            "@fe"
+          ]
+        }
+      },
+      {
+        "id": "backend",
+        "name": "Backend Dev",
+        "workspace": "/home/node/.openclaw/workspace-backend",
+        "agentDir": "/home/node/.openclaw/agents/backend/agent",
+        "model": "anthropic/claude-sonnet-4-5",
+        "groupChat": {
+          "mentionPatterns": [
+            "@backend",
+            "@Backend",
+            "@be"
+          ]
+        }
+      },
+      {
+        "id": "tester",
+        "name": "Tester",
+        "workspace": "/home/node/.openclaw/workspace-tester",
+        "agentDir": "/home/node/.openclaw/agents/tester/agent",
+        "model": "anthropic/claude-sonnet-4-5",
+        "groupChat": {
+          "mentionPatterns": [
+            "@tester",
+            "@Tester",
+            "@test"
+          ]
+        }
+      }
+    ]
+  },
+  "bindings": [],
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto",
+    "restart": true,
+    "ownerDisplay": "raw"
+  },
+  "session": {
+    "dmScope": "per-account-channel-peer"
+  },
+  "channels": {
+    "discord": {
+      "enabled": false,
+      "token": "<DISCORD_BOT_TOKEN>",
+      "groupPolicy": "allowlist",
+      "streaming": "off",
+      "guilds": {}
+    }
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "controlUi": {
+      "dangerouslyAllowHostHeaderOriginFallback": true
+    },
+    "auth": {
+      "mode": "token",
+      "token": "<GENERATE_ON_FIRST_START>"
+    }
+  },
+  "skills": {
+    "entries": {
+      "github-ops": {
+        "enabled": true
+      },
+      "code-review": {
+        "enabled": true
+      },
+      "typescript": {
+        "enabled": true
+      },
+      "react-expert": {
+        "enabled": true
+      },
+      "react-best-practices": {
+        "enabled": true
+      },
+      "react-performance": {
+        "enabled": true
+      },
+      "tailwind-v4-shadcn": {
+        "enabled": true
+      },
+      "lb-zod-skill": {
+        "enabled": true
+      },
+      "sovereign-accessibility-auditor": {
+        "enabled": true
+      },
+      "testing-patterns": {
+        "enabled": true
+      },
+      "nestjs": {
+        "enabled": true
+      },
+      "security-auditor": {
+        "enabled": true
+      },
+      "security-scanner": {
+        "enabled": true
+      },
+      "e2e-testing-patterns": {
+        "enabled": true
+      },
+      "devops": {
+        "enabled": true
+      }
+    }
+  }
+}

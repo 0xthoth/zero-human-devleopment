@@ -1,0 +1,7 @@
+Host dev-server
+    HostName dev-server
+    User dev
+    IdentityFile /home/node/.ssh/id_ed25519
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+    LogLevel ERROR

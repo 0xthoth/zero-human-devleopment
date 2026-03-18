@@ -1,0 +1,192 @@
+#!/bin/bash
+# Template Verification Script
+# Git-aware: Only checks files that will be committed to GitHub
+
+echo "🔍 OpenClaw Template Verification (Git-Aware)"
+echo "=============================================="
+echo ""
+
+ERRORS=0
+
+# Initialize git if needed (for checking)
+if [ ! -d .git ]; then
+    echo "⚠️  Not a git repository. Initializing temporarily for verification..."
+    git init -q
+    TEMP_GIT=true
+fi
+
+# Function to check for pattern in tracked files only
+check_pattern_tracked() {
+    pattern=$1
+    description=$2
+
+    # Get list of files that would be committed (not gitignored)
+    tracked_files=$(git ls-files 2>/dev/null)
+    if [ -z "$tracked_files" ]; then
+        # If no files tracked yet, check what would be added
+        tracked_files=$(git ls-files --others --exclude-standard 2>/dev/null)
+    fi
+
+    results=""
+    while IFS= read -r file; do
+        if [ -f "$file" ] && [ "$file" != "verify-template.sh" ]; then
+            if grep -l "$pattern" "$file" 2>/dev/null; then
+                results="$results$file\n"
+            fi
+        fi
+    done <<< "$tracked_files"
+
+    if [ -n "$results" ]; then
+        echo "❌ Found $description in files that WILL be committed:"
+        echo -e "$results" | sed 's/^/  /'
+        echo ""
+        ERRORS=$((ERRORS + 1))
+    else
+        echo "✅ No $description in tracked files"
+    fi
+}
+
+# Check for secrets in tracked files only
+echo "Checking tracked files for secrets..."
+check_pattern_tracked "MTQ4MzY1" "Discord bot tokens"
+check_pattern_tracked "b9ce5dde0c2b9f8c17bf5362ef46be2fa796cccfe9421e74" "gateway auth tokens"
+check_pattern_tracked "1317014410509684799" "Discord guild IDs"
+check_pattern_tracked "1483684870772359208\|1483684965429280920\|1483685099768643654" "Discord channel IDs"
+check_pattern_tracked "967012508865032213" "Discord user IDs"
+
+echo ""
+echo "Checking for project-specific references in tracked files..."
+# Check in template files (excluding package-lock.json and docs examples)
+tracked_files=$(git ls-files 2>/dev/null | grep -v "package-lock.json\|docs/.*\.md")
+if [ -z "$tracked_files" ]; then
+    tracked_files=$(git ls-files --others --exclude-standard 2>/dev/null | grep -v "package-lock.json\|docs/.*\.md")
+fi
+
+old_project_found=""
+namespace_found=""
+while IFS= read -r file; do
+    if [ -f "$file" ] && [ "$file" != "verify-template.sh" ]; then
+        if grep -l "0xthoth-dev-ai" "$file" 2>/dev/null; then
+            old_project_found="$old_project_found$file\n"
+        fi
+        if grep -l "@0xthoth" "$file" 2>/dev/null; then
+            namespace_found="$namespace_found$file\n"
+        fi
+    fi
+done <<< "$tracked_files"
+
+if [ -n "$old_project_found" ]; then
+    echo "❌ Found old project name (0xthoth-dev-ai) in:"
+    echo -e "$old_project_found" | sed 's/^/  /'
+    ERRORS=$((ERRORS + 1))
+else
+    echo "✅ No old project name in tracked files"
+fi
+
+if [ -n "$namespace_found" ]; then
+    echo "❌ Found namespace references (@0xthoth) in:"
+    echo -e "$namespace_found" | sed 's/^/  /'
+    ERRORS=$((ERRORS + 1))
+else
+    echo "✅ No namespace references in tracked files"
+fi
+
+echo ""
+echo "Checking required template files exist..."
+required_files=(
+    ".openclaw/openclaw.json.template"
+    ".env.example"
+    "docs/TEMPLATE.md"
+    ".gitignore"
+    "Makefile"
+)
+
+for file in "${required_files[@]}"; do
+    if [ -f "$file" ]; then
+        echo "✅ $file exists"
+    else
+        echo "❌ $file missing"
+        ERRORS=$((ERRORS + 1))
+    fi
+done
+
+echo ""
+echo "Checking gitignore rules..."
+gitignore_rules=(
+    ".env"
+    ".openclaw/identity/"
+    ".openclaw/devices/paired.json"
+    ".openclaw/openclaw.json"
+    ".openclaw/agents/"
+)
+
+for rule in "${gitignore_rules[@]}"; do
+    if grep -q "$rule" .gitignore 2>/dev/null; then
+        echo "✅ .gitignore includes: $rule"
+    else
+        echo "❌ .gitignore missing: $rule"
+        ERRORS=$((ERRORS + 1))
+    fi
+done
+
+echo ""
+echo "Checking environment variable usage in docker-compose.yml..."
+if grep -q "GIT_USER_NAME=\${GIT_USER_NAME:-project-bot}" docker-compose.yml 2>/dev/null; then
+    echo "✅ docker-compose.yml uses environment variables"
+else
+    echo "❌ docker-compose.yml may have hardcoded values"
+    ERRORS=$((ERRORS + 1))
+fi
+
+echo ""
+echo "Verifying gitignored files are protected..."
+if [ -f .openclaw/openclaw.json ] && git check-ignore .openclaw/openclaw.json >/dev/null 2>&1; then
+    echo "✅ .openclaw/openclaw.json is gitignored (contains secrets - safe)"
+elif [ ! -f .openclaw/openclaw.json ]; then
+    echo "ℹ️  .openclaw/openclaw.json doesn't exist yet (will be generated)"
+else
+    echo "⚠️  .openclaw/openclaw.json exists but not gitignored!"
+fi
+
+if [ -f .env ] && git check-ignore .env >/dev/null 2>&1; then
+    echo "✅ .env is gitignored (contains secrets - safe)"
+elif [ ! -f .env ]; then
+    echo "ℹ️  .env doesn't exist yet (will be generated by 'make init')"
+else
+    echo "⚠️  .env exists but not gitignored!"
+fi
+
+# Cleanup temp git if created
+if [ "$TEMP_GIT" = true ]; then
+    rm -rf .git
+fi
+
+echo ""
+echo "=============================================="
+if [ $ERRORS -eq 0 ]; then
+    echo "✅ Template verification PASSED!"
+    echo ""
+    echo "Your template is secure and ready for GitHub."
+    echo ""
+    echo "What this means:"
+    echo "  • No secrets in files that will be committed"
+    echo "  • All sensitive files are properly gitignored"
+    echo "  • Template structure is complete"
+    echo ""
+    echo "Next steps:"
+    echo "  1. git add ."
+    echo "  2. git commit -m 'Initial commit: OpenClaw 5-agent template'"
+    echo "  3. git push origin main"
+    echo ""
+    echo "Note: Local files like .openclaw/openclaw.json may contain"
+    echo "      secrets, but they're gitignored and won't be pushed."
+    exit 0
+else
+    echo "❌ Template verification FAILED with $ERRORS error(s)"
+    echo ""
+    echo "Please fix the issues above before pushing to GitHub."
+    echo ""
+    echo "The errors are in files that WILL be committed."
+    echo "Files that are gitignored (like .env) are safe."
+    exit 1
+fi

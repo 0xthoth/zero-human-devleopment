@@ -1,0 +1,38 @@
+node_modules/
+dist/
+*.log
+.DS_Store
+coverage/
+
+# Secrets
+.env
+.env.local
+.env.*.local
+
+# Runtime data
+data/
+traefik_letsencrypt/
+
+# OpenClaw — track workspace configs, exclude runtime data
+.openclaw/agents/
+.openclaw/**/memory/
+.openclaw/sandboxes/
+.openclaw/shared/
+.openclaw/workspace-*/
+
+# Per-project secrets and generated data (never commit)
+.openclaw/identity/
+.openclaw/devices/paired.json
+.openclaw/openclaw.json
+.openclaw/openclaw.json.project-backup
+.openclaw/logs/
+.openclaw/exec-approvals.json
+.openclaw/memory/
+
+# Generated during onboarding
+.openclaw/devices/pending.json
+
+# Local backups
+*.bak
+*.bak.*
+backup.json

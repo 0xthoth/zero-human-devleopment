@@ -1,0 +1,111 @@
+# Per-project Docker Compose
+# Each project gets its own instance of: dev-server + openclaw-gateway
+#
+# PROJECT_NAME in .env makes container names and Traefik routes unique.
+# Example: PROJECT_NAME=myapp → myapp.code.localhost, myapp.openclaw.localhost
+
+services:
+  dev-server:
+    build:
+      context: ./build
+      args:
+        DEV_USER: ${DEV_USER:-dev}
+        DEV_USER_PASSWORD: ${DEV_USER_PASSWORD:-changeme}
+    container_name: ${PROJECT_NAME:-project}-dev
+    hostname: ${PROJECT_NAME:-project}-dev
+    environment:
+      - DEV_USER=${DEV_USER:-dev}
+      - CODE_SERVER_PASSWORD=${DEV_USER_PASSWORD:-changeme}
+      - GIT_USER_NAME=${GIT_USER_NAME:-project-bot}
+      - GIT_USER_EMAIL=${GIT_USER_EMAIL:-bot@example.com}
+    ports:
+      - "${SSH_PORT:-2222}:22"
+    volumes:
+      - ./data/${DEV_USER:-dev}:/home/${DEV_USER:-dev}
+      # Optimized: Only mount directories needed for builds/tests
+      - ./apps:/home/${DEV_USER:-dev}/project/apps
+      - ./packages:/home/${DEV_USER:-dev}/project/packages
+      - ./package.json:/home/${DEV_USER:-dev}/project/package.json:ro
+      - ./package-lock.json:/home/${DEV_USER:-dev}/project/package-lock.json
+      - ./node_modules:/home/${DEV_USER:-dev}/project/node_modules
+      # Optional: mount additional config files if needed
+      # - ./tsconfig.json:/home/${DEV_USER:-dev}/project/tsconfig.json:ro
+      # - ./.npmrc:/home/${DEV_USER:-dev}/project/.npmrc:ro
+    restart: unless-stopped
+    networks:
+      - internal
+      - traefik_net
+    labels:
+      # Traefik: code-server
+      - "traefik.enable=true"
+      - "traefik.http.routers.${PROJECT_NAME:-project}-code.rule=Host(`${PROJECT_NAME:-project}.code.localhost`)"
+      - "traefik.http.routers.${PROJECT_NAME:-project}-code.entrypoints=web"
+      - "traefik.http.services.${PROJECT_NAME:-project}-code.loadbalancer.server.port=8080"
+
+  openclaw-gateway:
+    image: ghcr.io/openclaw/openclaw:latest
+    container_name: ${PROJECT_NAME:-project}-gateway
+    hostname: ${PROJECT_NAME:-project}-gateway
+    restart: unless-stopped
+    volumes:
+      - ./.openclaw:/home/node/.openclaw
+      # Gateway needs FULL project access (not optimized like dev-server)
+      # - Required for editing all files (code, configs, docs, etc.)
+      # - Required for git operations (needs .git/, all tracked files)
+      # - Required for creating PRs, commits, editing documentation
+      - ./:/home/node/projects
+      - openclaw_home:/home/node
+      - ./data/${DEV_USER:-dev}/.openclaw-ssh:/home/node/.ssh
+      - ./build/ssh-config:/home/node/.ssh/config:ro
+    environment:
+      - NODE_ENV=production
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - DEV_SERVER_HOST=dev-server
+      - DEV_USER=${DEV_USER:-dev}
+      - GIT_AUTHOR_NAME=${GIT_USER_NAME:-project-bot}
+      - GIT_AUTHOR_EMAIL=${GIT_USER_EMAIL:-bot@example.com}
+      - GIT_COMMITTER_NAME=${GIT_USER_NAME:-project-bot}
+      - GIT_COMMITTER_EMAIL=${GIT_USER_EMAIL:-bot@example.com}
+    command: ["openclaw", "gateway", "--port", "18789", "--bind", "lan", "--verbose"]
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:18789/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      - dev-server
+    networks:
+      - internal
+      - traefik_net
+    labels:
+      # Traefik: openclaw web UI
+      - "traefik.enable=true"
+      - "traefik.http.routers.${PROJECT_NAME:-project}-openclaw.rule=Host(`${PROJECT_NAME:-project}.openclaw.localhost`)"
+      - "traefik.http.routers.${PROJECT_NAME:-project}-openclaw.entrypoints=web"
+      - "traefik.http.services.${PROJECT_NAME:-project}-openclaw.loadbalancer.server.port=18789"
+
+  openclaw-cli:
+    image: ghcr.io/openclaw/openclaw:latest
+    container_name: ${PROJECT_NAME:-project}-cli
+    network_mode: "service:openclaw-gateway"
+    volumes:
+      - ./.openclaw:/home/node/.openclaw
+      # CLI needs FULL project access (same as gateway)
+      - ./:/home/node/projects
+      - openclaw_home:/home/node
+    profiles:
+      - cli
+    stdin_open: true
+    tty: true
+
+volumes:
+  openclaw_home:
+    name: ${PROJECT_NAME:-project}_openclaw_home
+
+networks:
+  internal:
+    name: ${PROJECT_NAME:-project}_internal
+  traefik_net:
+    name: traefik_net
+    external: true

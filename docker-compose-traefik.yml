@@ -1,0 +1,50 @@
+# Traefik — Central Reverse Proxy (run ONCE, shared across all projects)
+#
+# Start:  docker compose -f docker-compose-traefik.yml up -d
+# Stop:   docker compose -f docker-compose-traefik.yml down
+# Logs:   docker compose -f docker-compose-traefik.yml logs -f
+#
+# Dashboard: http://traefik.localhost/dashboard/
+#
+# Each project's docker-compose.yml adds Traefik labels for auto-discovery.
+# No manual config needed per project — Traefik finds them via Docker.
+
+services:
+  traefik:
+    image: traefik:v3.3
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=traefik_net"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      # Uncomment for auto-HTTPS with Let's Encrypt:
+      # - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      # - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      # - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:-admin@example.com}"
+      # - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8099:8080"   # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_letsencrypt:/letsencrypt
+    networks:
+      - traefik_net
+    labels:
+      # Dashboard route
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.localhost`)"
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
+
+volumes:
+  traefik_letsencrypt:
+
+networks:
+  traefik_net:
+    name: traefik_net

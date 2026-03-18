@@ -1,0 +1,9 @@
+{
+  "name": "openclaw-5-agent-template",
+  "description": "OpenClaw 5-agent AI dev team template (Owner, QA, Frontend, Backend, Tester)",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}
