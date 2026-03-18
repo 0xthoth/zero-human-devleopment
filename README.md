@@ -52,7 +52,8 @@ You (Discord / Web UI)
 ├── apps/
 │   ├── web/                    # React TS + Vite frontend
 │   └── api/                    # NestJS backend
-├── packages/                   # Shared TS libraries (@myorg/<name>)
+├── packages/
+│   └── shared/                 # Shared utilities, types (@myorg/shared)
 ├── .openclaw/
 │   ├── openclaw.json           # Agent config, channels, skills
 │   ├── shared/                 # Shared agent docs (TEAM-RULEBOOK, TOOLS-COMMON)
@@ -322,6 +323,7 @@ pnpm run dev
 # Run in specific workspace
 pnpm --filter web dev         # Frontend only
 pnpm --filter api start:dev   # Backend only
+pnpm --filter @myorg/shared dev  # Watch shared package
 
 # Run across all workspaces
 pnpm -r build                 # Build all
@@ -338,6 +340,32 @@ pnpm run clean
 - 🎯 Strict dependencies (no phantom deps)
 - 🚀 Built-in parallel execution
 - 📦 Better workspace commands
+
+## Using Shared Packages
+
+The `packages/shared` example shows how to share code between apps:
+
+**In apps, add dependency:**
+```json
+{
+  "dependencies": {
+    "@myorg/shared": "workspace:*"
+  }
+}
+```
+
+**Import in your code:**
+```typescript
+import { formatDate, ApiResponse } from '@myorg/shared';
+```
+
+**Benefits:**
+- ✅ Type-safe sharing between frontend/backend
+- ✅ DRY: Write once, use everywhere
+- ✅ Hot reload: Changes reflect immediately
+- ✅ Easy refactoring across apps
+
+See `packages/shared/README.md` for examples.
 
 ## Multi-Project Setup
 
