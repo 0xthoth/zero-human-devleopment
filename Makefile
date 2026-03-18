@@ -54,8 +54,11 @@ update-password: ## Update dev-server password (prompts for input)
 fix-data-permission: ## Fix ./data ownership to UID 1000
 	sudo chown -R 1000:1000 ./data
 
-dev-install: ## Run npm install inside dev-server (first time + after adding deps)
-	docker compose exec -u $(DEV_USER) dev-server bash -c "cd /home/$(DEV_USER)/project && npm install"
+dev-install: ## Install pnpm and dependencies (auto-installs pnpm if needed)
+	@echo "Checking for pnpm..."
+	@docker compose exec -u $(DEV_USER) dev-server bash -c "command -v pnpm >/dev/null 2>&1 || npm install -g pnpm@9.15.4"
+	@echo "Installing dependencies with pnpm..."
+	@docker compose exec -u $(DEV_USER) dev-server bash -c "cd /home/$(DEV_USER)/projects && pnpm install"
 
 # --- Traefik (central reverse proxy) ---
 

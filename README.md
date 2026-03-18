@@ -30,7 +30,7 @@ You (Discord / Web UI)
 | Frontend | React 18+, TypeScript strict, Vite, Vitest, Tailwind CSS |
 | Backend | NestJS, TypeScript strict, PostgreSQL, Jest, Swagger |
 | Shared | `packages/*` for shared types/utils (`@myorg/<name>`) |
-| Monorepo | npm workspaces |
+| Monorepo | pnpm workspaces |
 | CI | GitHub Actions |
 | Agents | OpenClaw + Claude API (Opus 4.6 / Sonnet 4.5) |
 | Infra | Docker Compose, Traefik, code-server |
@@ -139,15 +139,15 @@ make build
 make start
 ```
 
-### 5. Install Linux-native dependencies (first time)
+### 5. Install dependencies (first time)
 
-The host machine (macOS/Windows) installs native binaries (esbuild, swc) that won't work inside the Linux dev-server container. You must run `npm install` inside the container:
+The template uses pnpm for faster installs and better monorepo support. Install dependencies inside the dev-server:
 
 ```bash
-make dev-install
+make dev-install     # Auto-installs pnpm if needed, then installs dependencies
 ```
 
-This runs `npm install` inside the dev-server, compiling native modules for Linux. **Run this once after first start, and again whenever you add/change dependencies.**
+This automatically installs pnpm (if not present) and compiles native modules for Linux. **Run whenever you add/change dependencies.**
 
 ### 6. Install OpenClaw skills
 
@@ -254,24 +254,24 @@ These tools work directly on the project files mounted into the openclaw-gateway
 **2. SSH to dev-server** — for running builds, tests, and linting:
 
 ```bash
-ssh dev@dev-server "cd ~/projects/apps/web && npm test -- --run"
-ssh dev@dev-server "cd ~/projects/apps/api && npm run build"
+ssh dev@dev-server "cd ~/projects/apps/web && pnpm test -- --run"
+ssh dev@dev-server "cd ~/projects/apps/api && pnpm run build"
 ```
 
-The dev-server has Node.js 22, npm, and Linux-native binaries — it's the execution environment.
+The dev-server has Node.js 22, pnpm, and Linux-native binaries — it's the execution environment.
 
 | Action | How | Where |
 |--------|-----|-------|
 | Read/write/edit files | OpenClaw file tools | openclaw-gateway container (full access) |
-| `npm run lint` | `ssh dev@dev-server "..."` | dev-server container (apps/ only) |
-| `npm test` | `ssh dev@dev-server "..."` | dev-server container (apps/ only) |
-| `npm run build` | `ssh dev@dev-server "..."` | dev-server container (apps/ only) |
+| `pnpm run lint` | `ssh dev@dev-server "..."` | dev-server container (apps/ only) |
+| `pnpm test` | `ssh dev@dev-server "..."` | dev-server container (apps/ only) |
+| `pnpm run build` | `ssh dev@dev-server "..."` | dev-server container (apps/ only) |
 | `git commit`, `git push` | OpenClaw exec | openclaw-gateway container (full access) |
 | `gh pr create` | OpenClaw exec | openclaw-gateway container (full access) |
 
 **Volume optimization:** The dev-server only mounts `apps/`, `packages/`, and essential config files (not the full project). This improves security and performance. The gateway keeps full project access for editing all files and git operations.
 
-Agents don't need a running dev server (`npm run dev`). They verify correctness via builds and tests only.
+Agents don't need a running dev server (`pnpm run dev`). They verify correctness via builds and tests only.
 
 ### Container Connectivity
 
@@ -300,15 +300,44 @@ After agents finish, you can preview:
 make ssh
 
 # Start frontend
-cd ~/projects/apps/web && npm run dev
+cd ~/projects/apps/web && pnpm run dev
 # Open http://localhost:5173
 
 # Start backend
-cd ~/projects/apps/api && npm run start:dev
+cd ~/projects/apps/api && pnpm run start:dev
 # Open http://localhost:3000/api/docs (Swagger)
 ```
 
 Or browse code via code-server: `http://${PROJECT_NAME}.code.localhost`
+
+## pnpm Commands (Monorepo)
+
+The template uses **pnpm workspaces** for faster installs and better monorepo management:
+
+```bash
+# Start both apps in parallel (from root)
+cd ~/projects
+pnpm run dev
+
+# Run in specific workspace
+pnpm --filter web dev         # Frontend only
+pnpm --filter api start:dev   # Backend only
+
+# Run across all workspaces
+pnpm -r build                 # Build all
+pnpm -r test                  # Test all
+pnpm -r lint                  # Lint all
+
+# Clean all node_modules
+pnpm run clean
+```
+
+**Why pnpm?**
+- ⚡ 3x faster than npm
+- 💾 Saves disk space (content-addressable store)
+- 🎯 Strict dependencies (no phantom deps)
+- 🚀 Built-in parallel execution
+- 📦 Better workspace commands
 
 ## Multi-Project Setup
 
@@ -345,7 +374,7 @@ make status              # Show URLs and container status
 
 # Dev Server
 make ssh                 # SSH into dev-server
-make dev-install         # Run npm install inside dev-server (first time + deps change)
+make dev-install         # Install pnpm + dependencies (auto-detects if pnpm needed)
 make update-password     # Change dev-server / code-server password
 make fix-data-permission # Fix ./data ownership to UID 1000
 
@@ -421,15 +450,15 @@ See `.env.example` for the full template:
 
 ## Troubleshooting
 
-### `npm test` or `npm run build` fails with binary errors
+### `pnpm test` or `pnpm run build` fails with binary errors
 
 Native binaries (esbuild, swc, etc.) compiled on macOS won't work inside the Linux dev-server container. Fix:
 
 ```bash
-make dev-install
+make dev-install     # Reinstall with Linux binaries (auto-installs pnpm if needed)
 ```
 
-This runs `npm install` inside the container to get Linux-native binaries.
+This runs `pnpm install` inside the container to get Linux-native binaries.
 
 ### `traefik_net` network not found
 

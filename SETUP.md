@@ -52,15 +52,15 @@ make start          # starts dev-server + openclaw-gateway
 
 ---
 
-## Step 4: Install Linux dependencies
+## Step 4: Install dependencies
 
-macOS native binaries won't work in the Linux container. Run once:
+The template uses pnpm for better monorepo support. Install dependencies:
 
 ```bash
-make dev-install
+make dev-install     # Auto-installs pnpm if needed, then installs dependencies
 ```
 
-Run again whenever you add/change npm dependencies.
+This automatically installs pnpm (if not present) and installs all dependencies. Run again whenever you add/change dependencies.
 
 ---
 
@@ -237,10 +237,10 @@ This reduces the attack surface and file watching overhead while keeping full fu
 
 ## Troubleshooting
 
-### `npm test` / `npm run build` fails with binary errors
+### `pnpm test` / `pnpm run build` fails with binary errors
 
 ```bash
-make dev-install
+make dev-install     # Reinstall dependencies (auto-installs pnpm if needed)
 ```
 
 ### Gateway restart-looping

@@ -2,8 +2,17 @@
   "name": "openclaw-5-agent-template",
   "description": "OpenClaw 5-agent AI dev team template (Owner, QA, Frontend, Backend, Tester)",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ]
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "dev": "pnpm --parallel -r run dev",
+    "dev:web": "pnpm --filter web dev",
+    "dev:api": "pnpm --filter api start:dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "clean": "pnpm -r exec rm -rf node_modules && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "pnpm": "^9.15.4"
+  }
 }

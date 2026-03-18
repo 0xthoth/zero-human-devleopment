@@ -4,6 +4,10 @@ dist/
 .DS_Store
 coverage/
 
+# pnpm
+.pnpm-store/
+.pnpm-debug.log
+
 # Secrets
 .env
 .env.local
