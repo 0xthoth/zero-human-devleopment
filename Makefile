@@ -56,9 +56,9 @@ fix-data-permission: ## Fix ./data ownership to UID 1000
 
 dev-install: ## Install pnpm and dependencies (auto-installs pnpm if needed)
 	@echo "Checking for pnpm..."
-	@docker compose exec -u $(DEV_USER) dev-server bash -c "command -v pnpm >/dev/null 2>&1 || npm install -g pnpm@9.15.4"
+	@docker compose exec -u $(DEV_USER) dev-server bash -c "command -v pnpm >/dev/null 2>&1 || (mkdir -p ~/.npm-global && npm config set prefix ~/.npm-global && npm install -g pnpm@9.15.4 && echo 'export PATH=~/.npm-global/bin:\$$PATH' >> ~/.bashrc)"
 	@echo "Installing dependencies with pnpm..."
-	@docker compose exec -u $(DEV_USER) dev-server bash -c "cd /home/$(DEV_USER)/projects && pnpm install"
+	@docker compose exec -u $(DEV_USER) dev-server bash -c "export PATH=~/.npm-global/bin:\$$PATH && cd /home/$(DEV_USER)/projects && pnpm install"
 
 # --- Traefik (central reverse proxy) ---
 
