@@ -280,25 +280,4 @@ echo ""
 echo -e "${GREEN}🎉 Your OpenClaw multi-agent system is ready to use!${NC}"
 echo ""
 
-# Save credentials to .env file (optional)
-read -p "Do you want to save credentials to .openclaw/.env for reference? (Y/n): " -n 1 -r
-echo
-if [[ ! $REPLY =~ ^[Nn]$ ]]; then
-    ENV_FILE="$PROJECT_ROOT/.openclaw/.env"
-    cat > "$ENV_FILE" << EOF
-# OpenClaw Configuration - Generated on $(date)
-# DO NOT COMMIT THIS FILE TO VERSION CONTROL
-
-DISCORD_BOT_TOKEN=$DISCORD_BOT_TOKEN
-DISCORD_GUILD_ID=$GUILD_ID
-DISCORD_USER_ID=$USER_ID
-OWNER_CHANNEL_ID=$OWNER_CHANNEL_ID
-TEAM_CHANNEL_ID=$TEAM_CHANNEL_ID
-GATEWAY_AUTH_TOKEN=$GATEWAY_AUTH_TOKEN
-EOF
-    chmod 600 "$ENV_FILE"
-    echo -e "${GREEN}✓ Credentials saved to: $ENV_FILE${NC}"
-    echo ""
-fi
-
 exit 0

@@ -142,7 +142,6 @@ The script will:
 - ✅ Create `.openclaw/openclaw.json` from template
 - ✅ Set proper file permissions (600)
 - ✅ Backup existing config if present
-- ✅ Optionally save credentials to `.openclaw/.env` for reference
 
 **What you'll need:**
 1. **Discord Bot Token** - Get from [Discord Developer Portal](https://discord.com/developers/applications)

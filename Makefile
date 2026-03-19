@@ -93,9 +93,19 @@ openclaw-devices-approve: ## Approve OpenClaw device (requestId=<id>)
 	docker exec $(OPENCLAW_GATEWAY_CONTAINER) openclaw devices approve $(requestId)
 
 openclaw-devices-auto-approve: ## Auto-extract and approve device
-	$(eval REQUEST_ID := $(shell docker exec $(OPENCLAW_GATEWAY_CONTAINER) openclaw devices list | grep -o '"requestId":"[^"]*"' | cut -d'"' -f4))
-	@echo "Approving device: $(REQUEST_ID)"
-	docker exec $(OPENCLAW_GATEWAY_CONTAINER) openclaw devices approve $(REQUEST_ID)
+	@$(eval REQUEST_ID := $(shell docker exec $(OPENCLAW_GATEWAY_CONTAINER) openclaw devices list 2>/dev/null | grep -o '"requestId":"[^"]*"' | cut -d'"' -f4))
+	@if [ -z "$(REQUEST_ID)" ]; then \
+		echo "✓ No pending device pairing requests"; \
+		echo ""; \
+		echo "To create a pairing request:"; \
+		echo "  1. Open: http://$(PROJECT_NAME).openclaw.localhost"; \
+		echo "  2. Click through the device pairing prompt"; \
+		echo "  3. Run this command again to approve"; \
+	else \
+		echo "Approving device: $(REQUEST_ID)"; \
+		docker exec $(OPENCLAW_GATEWAY_CONTAINER) openclaw devices approve $(REQUEST_ID) && \
+		echo "✓ Device approved successfully!"; \
+	fi
 
 openclaw-pairing-list: ## List pending pairing requests
 	docker exec $(OPENCLAW_GATEWAY_CONTAINER) openclaw pairing list

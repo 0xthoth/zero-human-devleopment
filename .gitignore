@@ -43,10 +43,6 @@ traefik_letsencrypt/
 .openclaw/openclaw.json.project-backup
 .openclaw/update-check.json
 
-# OpenClaw credentials (optional reference file from setup script)
-.openclaw/.env
-.openclaw/.env.*
-
 # OpenClaw session data (contains auth tokens)
 .openclaw/agents/*/sessions/
 

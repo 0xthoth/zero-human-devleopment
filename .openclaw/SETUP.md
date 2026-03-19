@@ -56,7 +56,6 @@ The script will:
 4. ✅ Generate secure gateway auth token
 5. ✅ Create `openclaw.json` from template
 6. ✅ Set proper file permissions (600)
-7. ✅ Optionally save credentials to `.openclaw/.env` for reference
 
 ### What You'll Be Asked For
 
@@ -132,7 +131,6 @@ The setup script and `.gitignore` ensure these files are **never committed** to 
 
 - ✅ `.openclaw/openclaw.json` - Main config (contains tokens)
 - ✅ `.openclaw/openclaw.json.backup.*` - Timestamped backups
-- ✅ `.openclaw/.env` - Optional credentials reference
 - ✅ `.openclaw/agents/*/sessions/` - Session data
 
 **⚠️ WARNING:** Never commit files containing:
