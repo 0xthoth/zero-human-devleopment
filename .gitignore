@@ -39,8 +39,16 @@ traefik_letsencrypt/
 # OpenClaw Live Config (use template instead)
 .openclaw/openclaw.json
 .openclaw/openclaw.json.bak
+.openclaw/openclaw.json.backup.*
 .openclaw/openclaw.json.project-backup
 .openclaw/update-check.json
+
+# OpenClaw credentials (optional reference file from setup script)
+.openclaw/.env
+.openclaw/.env.*
+
+# OpenClaw session data (contains auth tokens)
+.openclaw/agents/*/sessions/
 
 # Workspace Runtime Data (exclude personal data)
 .openclaw/workspace-*/.openclaw/workspace-state.json

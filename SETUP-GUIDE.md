@@ -28,9 +28,9 @@ The fastest path to get all 5 agents working with Docker:
 cp .env.example .env
 # Edit .env with your keys
 
-# 2. Configure OpenClaw
-cp .openclaw/openclaw.json.template .openclaw/openclaw.json
-# Edit openclaw.json with Discord IDs (or skip Discord)
+# 2. Configure OpenClaw (automated setup)
+make openclaw-config-setup   # Interactive setup with validation
+# OR manually: cp .openclaw/openclaw.json.template .openclaw/openclaw.json
 
 # 3. Start everything
 make traefik-start          # Once per machine
@@ -127,6 +127,37 @@ GITHUB_TOKEN=ghp_xxxx
 
 ## Step 2: Configure OpenClaw
 
+### 🎯 Automated Setup (Recommended)
+
+Use the interactive setup script for guided configuration with validation:
+
+```bash
+make openclaw-config-setup
+```
+
+The script will:
+- ✅ Prompt for Discord bot token, guild ID, user ID, and channel IDs
+- ✅ Validate input format (checks Discord ID lengths)
+- ✅ Auto-generate secure gateway auth token
+- ✅ Create `.openclaw/openclaw.json` from template
+- ✅ Set proper file permissions (600)
+- ✅ Backup existing config if present
+- ✅ Optionally save credentials to `.openclaw/.env` for reference
+
+**What you'll need:**
+1. **Discord Bot Token** - Get from [Discord Developer Portal](https://discord.com/developers/applications)
+   - Create/select application → Bot → Reset Token
+   - Enable "Message Content Intent" under Privileged Gateway Intents
+2. **Guild ID** - Right-click your Discord server → Copy Server ID
+3. **User ID** - Right-click your username → Copy User ID
+4. **Channel IDs** - Right-click `#owner` and `#team` channels → Copy Channel ID
+
+💡 **Tip:** Enable Developer Mode first: `Discord Settings → Advanced → Developer Mode ✅`
+
+### 📝 Manual Setup (Alternative)
+
+If you prefer to configure manually:
+
 ```bash
 # Copy template to live config
 cp .openclaw/openclaw.json.template .openclaw/openclaw.json
@@ -134,22 +165,29 @@ cp .openclaw/openclaw.json.template .openclaw/openclaw.json
 
 Edit `.openclaw/openclaw.json` and replace placeholders:
 
+| Placeholder | Description | How to Get |
+|-------------|-------------|------------|
+| `<YOUR_DISCORD_BOT_TOKEN>` | Bot authentication token | Discord Developer Portal → Bot → Reset Token |
+| `<YOUR_GUILD_ID>` | Discord server ID | Right-click server → Copy Server ID |
+| `<YOUR_DISCORD_USER_ID>` | Your Discord user ID | Right-click username → Copy User ID |
+| `<YOUR_OWNER_CHANNEL_ID>` | Private planning channel | Right-click #owner → Copy Channel ID |
+| `<YOUR_TEAM_CHANNEL_ID>` | Public coordination channel | Right-click #team → Copy Channel ID |
+| `<GENERATE_ON_FIRST_START>` | Gateway auth token | Run: `openssl rand -hex 24` |
+
+Then set proper permissions:
 ```bash
-# Required replacements:
-<YOUR_DISCORD_BOT_TOKEN>      → Your Discord bot token (from Step 10)
-<YOUR_GUILD_ID>               → Your Discord server ID
-<YOUR_OWNER_CHANNEL_ID>       → Your #owner channel ID (private planning)
-<YOUR_TEAM_CHANNEL_ID>        → Your #team channel ID (public coordination)
-<YOUR_DISCORD_USER_ID>        → Your Discord user ID
+chmod 600 .openclaw/openclaw.json
 ```
 
-**How to get Discord IDs:**
-1. Enable Developer Mode: Discord Settings → Advanced → Developer Mode ✅
-2. Right-click server name → Copy Server ID (Guild ID)
-3. Right-click channel → Copy Channel ID
-4. Right-click your username → Copy User ID
+### 🚫 Skip Discord (Web UI Only)
 
-**Or skip Discord setup:** Remove Discord config from `openclaw.json` and use web UI only.
+If you don't want to use Discord, you can skip this step and use the web UI only. Just leave the template as-is and proceed to Step 3.
+
+### 📚 Detailed Setup Guide
+
+For comprehensive setup instructions, troubleshooting, and configuration details, see:
+- **Detailed Guide:** `.openclaw/SETUP.md`
+- **Quick Reference:** `.openclaw/CONFIG.md`
 
 ---
 
@@ -433,6 +471,7 @@ Common fixes:
 - `gateway.mode` not set → must be `"local"` in openclaw.json
 - `controlUi.allowedOrigins` missing → add `"dangerouslyAllowHostHeaderOriginFallback": true`
 - Discord warnings → set `"channels": {}` if not using Discord
+- Configuration errors → run `make openclaw-config-setup` to regenerate config
 
 ### `make dev-install` fails with "No such file or directory"
 
@@ -481,11 +520,18 @@ Or use the SSH shortcut config above (`StrictHostKeyChecking no`) to skip this p
 
 ### Update Discord bot token
 
+**Option 1: Update token only**
 ```bash
 make openclaw-discord-token token=NEW_TOKEN_HERE
 ```
 
-Updates the token in `openclaw.json` and restarts the gateway.
+**Option 2: Re-run full setup (recommended if multiple values need updating)**
+```bash
+make openclaw-config-setup
+```
+This will backup your existing config and walk you through all configuration values.
+
+Both options update `openclaw.json` and restart the gateway automatically.
 
 ### Stale socket file crashes dev-server on rebuild
 
@@ -713,11 +759,19 @@ cat .openclaw/workspace-frontend/AGENTS.md | grep "git config"
 ### Makefile Commands for Agents
 
 ```bash
+# Configuration
+make openclaw-config-setup  # Interactive setup for openclaw.json (Docker mode)
+
 # Gateway control
 make openclaw-restart       # Restart gateway (Docker mode)
 make gateway-restart        # Restart gateway (Local mode)
 
+# Device management
+make openclaw-devices-auto-approve  # Auto-approve browser device
+make openclaw-devices-list          # List pending devices
+
 # Skills
+make install-skills         # Install all skills (Docker mode)
 make update-skills          # Update all skills (Docker mode)
 make update-skills-local    # Update all skills (Local mode)
 

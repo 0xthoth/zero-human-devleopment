@@ -6,7 +6,7 @@ OPENCLAW_GATEWAY_CONTAINER ?= $(PROJECT_NAME)-gateway
 
 .PHONY: help start stop restart build logs ssh \
         traefik-start traefik-stop traefik-logs \
-        openclaw-setup openclaw-cmd openclaw-devices-list openclaw-devices-id openclaw-devices-approve openclaw-devices-auto-approve \
+        openclaw-setup openclaw-config-setup openclaw-cmd openclaw-devices-list openclaw-devices-id openclaw-devices-approve openclaw-devices-auto-approve \
         openclaw-discord-token openclaw-restart \
         update-password fix-data-permission dev-install \
         install-skills update-skills update-skills-local status init template-reset \
@@ -76,6 +76,9 @@ traefik-logs: ## Follow Traefik logs
 
 openclaw-setup: ## Onboard OpenClaw (first-time setup)
 	docker exec -it $(OPENCLAW_GATEWAY_CONTAINER) openclaw onboard
+
+openclaw-config-setup: ## Interactive setup for openclaw.json from template
+	@./scripts/setup-openclaw-config.sh
 
 openclaw-cmd: ## Run OpenClaw CLI command (cmd="agents list")
 	docker exec $(OPENCLAW_GATEWAY_CONTAINER) openclaw $(cmd)
