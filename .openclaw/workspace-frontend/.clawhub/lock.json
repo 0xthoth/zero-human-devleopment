@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "skills": {
+    "react-expert": {
+      "version": "0.1.0",
+      "installedAt": 1773797999414
+    },
+    "react-best-practices": {
+      "version": "1.0.0",
+      "installedAt": 1773798008197
+    },
+    "react-performance": {
+      "version": "1.0.0",
+      "installedAt": 1773798013049
+    },
+    "tailwind-v4-shadcn": {
+      "version": "1.0.0",
+      "installedAt": 1773798018696
+    },
+    "sovereign-accessibility-auditor": {
+      "version": "1.0.0",
+      "installedAt": 1773798039235
+    }
+  }
+}

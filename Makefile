@@ -9,7 +9,8 @@ OPENCLAW_GATEWAY_CONTAINER ?= $(PROJECT_NAME)-gateway
         openclaw-setup openclaw-cmd openclaw-devices-list openclaw-devices-approve \
         openclaw-discord-token openclaw-restart \
         update-password fix-data-permission dev-install \
-        install-skills status init template-reset
+        install-skills update-skills update-skills-local status init template-reset \
+        verify-template verify gateway-start gateway-stop gateway-restart gateway-status agents-list
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-24s\033[0m %s\n", $$1, $$2}'
@@ -101,7 +102,7 @@ openclaw-restart: ## Restart OpenClaw gateway
 
 # --- Skills ---
 
-install-skills: ## Install all OpenClaw skills (run after first start, requires: clawhub login)
+install-skills: ## Install all OpenClaw skills (Docker mode, run after first start, requires: clawhub login)
 	@echo "Installing shared skills..."
 	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) npx clawhub install github-cli --no-input
 	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) npx clawhub install github-ops --no-input
@@ -125,6 +126,49 @@ install-skills: ## Install all OpenClaw skills (run after first start, requires:
 	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) npx clawhub install e2e-testing-patterns --no-input
 	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) npx clawhub install devops --no-input
 	@echo "All skills installed!"
+
+update-skills: ## Update all OpenClaw skills (Docker mode)
+	@echo "🔄 Updating all skills (Docker mode)..."
+	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) bash -c "cd /home/node/.openclaw/skills && npx clawhub update --all"
+	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) bash -c "cd /home/node/.openclaw/workspace-owner/skills && npx clawhub update --all"
+	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) bash -c "cd /home/node/.openclaw/workspace-frontend/skills && npx clawhub update --all"
+	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) bash -c "cd /home/node/.openclaw/workspace-backend/skills && npx clawhub update --all"
+	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) bash -c "cd /home/node/.openclaw/workspace-qa-lead/skills && npx clawhub update --all"
+	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) bash -c "cd /home/node/.openclaw/workspace-tester/skills && npx clawhub update --all"
+	@echo "✅ All skills updated! Restart gateway: make openclaw-restart"
+
+update-skills-local: ## Update all OpenClaw skills (Local mode, no Docker)
+	@echo "🔄 Updating All Skills to Latest Versions (Local)..."
+	@echo "📁 Project root: $(shell pwd)"
+	@echo ""
+	@echo "=== 1/6 Updating Shared Skills (all agents) ==="
+	cd .openclaw/skills && clawhub update --all
+	@echo "✅ Shared skills updated"
+	@echo ""
+	@echo "=== 2/6 Updating Owner Skills ==="
+	cd .openclaw/workspace-owner/skills && clawhub update --all
+	@echo "✅ Owner skills updated"
+	@echo ""
+	@echo "=== 3/6 Updating Frontend Skills ==="
+	cd .openclaw/workspace-frontend/skills && clawhub update --all
+	@echo "✅ Frontend skills updated"
+	@echo ""
+	@echo "=== 4/6 Updating Backend Skills ==="
+	cd .openclaw/workspace-backend/skills && clawhub update --all
+	@echo "✅ Backend skills updated"
+	@echo ""
+	@echo "=== 5/6 Updating QA Lead Skills ==="
+	cd .openclaw/workspace-qa-lead/skills && clawhub update --all
+	@echo "✅ QA Lead skills updated"
+	@echo ""
+	@echo "=== 6/6 Updating Tester Skills ==="
+	cd .openclaw/workspace-tester/skills && clawhub update --all
+	@echo "✅ Tester skills updated"
+	@echo ""
+	@echo "🎉 All skills updated to latest versions!"
+	@echo ""
+	@echo "Next step: Restart the gateway"
+	@echo "  make gateway-restart"
 
 # --- Template Management ---
 
@@ -185,3 +229,97 @@ template-reset: ## Reset to template state (DANGER: deletes all project data)
 	echo '[]' > .openclaw/devices/paired.json
 	echo '[]' > .openclaw/devices/pending.json
 	@echo "✓ Reset to template state. Run 'make init' to configure."
+
+verify-template: verify ## Alias for verify
+verify: ## Verify template is ready for Git (checks for secrets in tracked files)
+	@echo "🔍 OpenClaw Template Verification (Git-Aware)"
+	@echo "=============================================="
+	@echo ""
+	@ERRORS=0; \
+	if [ ! -d .git ]; then \
+		echo "⚠️  Not a git repository. Initializing temporarily..."; \
+		git init -q; \
+		TEMP_GIT=true; \
+	fi; \
+	echo "Checking tracked files for secrets..."; \
+	tracked_files=$$(git ls-files 2>/dev/null || git ls-files --others --exclude-standard 2>/dev/null); \
+	for pattern in "MTQ4MzY1:Discord bot tokens" "b9ce5dde0c2b9f8c17bf5362ef46be2fa796cccfe9421e74:gateway auth tokens" "1317014410509684799:Discord guild IDs" "1483684870772359208\|1483684965429280920:Discord channel IDs" "967012508865032213:Discord user IDs"; do \
+		IFS=':' read -r pat desc <<< "$$pattern"; \
+		found=""; \
+		for file in $$tracked_files; do \
+			if [ -f "$$file" ] && [ "$$file" != "verify-template.sh" ] && [ "$$file" != "Makefile" ]; then \
+				if grep -l "$$pat" "$$file" 2>/dev/null >/dev/null; then \
+					found="$$found$$file\n"; \
+				fi; \
+			fi; \
+		done; \
+		if [ -n "$$found" ]; then \
+			echo "❌ Found $$desc in files that WILL be committed:"; \
+			echo -e "$$found" | sed 's/^/  /'; \
+			ERRORS=$$((ERRORS + 1)); \
+		else \
+			echo "✅ No $$desc in tracked files"; \
+		fi; \
+	done; \
+	echo ""; \
+	echo "Checking required template files exist..."; \
+	for file in ".openclaw/openclaw.json.template" ".gitignore" "README.md" "Makefile"; do \
+		if [ -f "$$file" ]; then \
+			echo "✅ $$file exists"; \
+		else \
+			echo "❌ $$file missing"; \
+			ERRORS=$$((ERRORS + 1)); \
+		fi; \
+	done; \
+	echo ""; \
+	echo "Checking gitignore rules..."; \
+	for rule in ".openclaw/openclaw.json" ".openclaw/agents/" ".openclaw/identity/" ".openclaw/devices/"; do \
+		if grep -q "$$rule" .gitignore 2>/dev/null; then \
+			echo "✅ .gitignore includes: $$rule"; \
+		else \
+			echo "❌ .gitignore missing: $$rule"; \
+			ERRORS=$$((ERRORS + 1)); \
+		fi; \
+	done; \
+	if [ "$$TEMP_GIT" = true ]; then \
+		rm -rf .git; \
+	fi; \
+	echo ""; \
+	echo "=============================================="; \
+	if [ $$ERRORS -eq 0 ]; then \
+		echo "✅ Template verification PASSED!"; \
+		echo ""; \
+		echo "Your template is secure and ready for GitHub."; \
+		echo ""; \
+		echo "Next steps:"; \
+		echo "  1. git add ."; \
+		echo "  2. git commit -m 'Initial commit: OpenClaw template'"; \
+		echo "  3. git push origin master"; \
+	else \
+		echo "❌ Template verification FAILED with $$ERRORS error(s)"; \
+		echo ""; \
+		echo "Please fix the issues above before pushing to GitHub."; \
+		exit 1; \
+	fi
+
+# --- Local OpenClaw Commands (no Docker) ---
+
+gateway-start: ## Start OpenClaw gateway (Local mode)
+	@echo "🚀 Starting OpenClaw gateway..."
+	openclaw gateway start
+
+gateway-stop: ## Stop OpenClaw gateway (Local mode)
+	@echo "🛑 Stopping OpenClaw gateway..."
+	openclaw gateway stop
+
+gateway-restart: ## Restart OpenClaw gateway (Local mode)
+	@echo "🔄 Restarting OpenClaw gateway..."
+	openclaw gateway restart
+
+gateway-status: ## Show OpenClaw gateway status (Local mode)
+	@echo "📊 OpenClaw Gateway Status:"
+	@openclaw gateway status || echo "❌ Gateway is not running"
+
+agents-list: ## List all configured agents (Local mode)
+	@echo "👥 Configured Agents:"
+	@openclaw agents list

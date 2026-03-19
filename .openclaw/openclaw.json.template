@@ -92,7 +92,68 @@
       }
     ]
   },
-  "bindings": [],
+  "bindings": [
+    {
+      "agentId": "owner",
+      "match": {
+        "channel": "discord",
+        "peer": {
+          "kind": "channel",
+          "id": "<YOUR_OWNER_CHANNEL_ID>"
+        }
+      }
+    },
+    {
+      "agentId": "owner",
+      "match": {
+        "channel": "discord",
+        "peer": {
+          "kind": "channel",
+          "id": "<YOUR_TEAM_CHANNEL_ID>"
+        }
+      }
+    },
+    {
+      "agentId": "frontend",
+      "match": {
+        "channel": "discord",
+        "peer": {
+          "kind": "channel",
+          "id": "<YOUR_TEAM_CHANNEL_ID>"
+        }
+      }
+    },
+    {
+      "agentId": "backend",
+      "match": {
+        "channel": "discord",
+        "peer": {
+          "kind": "channel",
+          "id": "<YOUR_TEAM_CHANNEL_ID>"
+        }
+      }
+    },
+    {
+      "agentId": "qa-lead",
+      "match": {
+        "channel": "discord",
+        "peer": {
+          "kind": "channel",
+          "id": "<YOUR_TEAM_CHANNEL_ID>"
+        }
+      }
+    },
+    {
+      "agentId": "tester",
+      "match": {
+        "channel": "discord",
+        "peer": {
+          "kind": "channel",
+          "id": "<YOUR_TEAM_CHANNEL_ID>"
+        }
+      }
+    }
+  ],
   "commands": {
     "native": "auto",
     "nativeSkills": "auto",
@@ -104,11 +165,25 @@
   },
   "channels": {
     "discord": {
-      "enabled": false,
-      "token": "<DISCORD_BOT_TOKEN>",
+      "enabled": true,
+      "token": "<YOUR_DISCORD_BOT_TOKEN>",
       "groupPolicy": "allowlist",
       "streaming": "off",
-      "guilds": {}
+      "guilds": {
+        "<YOUR_GUILD_ID>": {
+          "requireMention": true,
+          "users": ["<YOUR_DISCORD_USER_ID>"],
+          "channels": {
+            "<YOUR_OWNER_CHANNEL_ID>": {
+              "allow": true,
+              "requireMention": false
+            },
+            "<YOUR_TEAM_CHANNEL_ID>": {
+              "allow": true
+            }
+          }
+        }
+      }
     }
   },
   "gateway": {
@@ -167,6 +242,9 @@
         "enabled": true
       },
       "devops": {
+        "enabled": true
+      },
+      "tmux": {
         "enabled": true
       }
     }

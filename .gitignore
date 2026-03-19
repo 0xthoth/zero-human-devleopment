@@ -17,26 +17,49 @@ coverage/
 data/
 traefik_letsencrypt/
 
-# OpenClaw — track workspace configs, exclude runtime data
+# OpenClaw Runtime Data (exclude, but keep template structure)
 .openclaw/agents/
-.openclaw/**/memory/
 .openclaw/sandboxes/
 .openclaw/shared/
-.openclaw/workspace-*/
-
-# Per-project secrets and generated data (never commit)
 .openclaw/identity/
-.openclaw/devices/paired.json
-.openclaw/openclaw.json
-.openclaw/openclaw.json.project-backup
+.openclaw/devices/
 .openclaw/logs/
 .openclaw/exec-approvals.json
 .openclaw/memory/
+.openclaw/cron/
+.openclaw/delivery-queue/
+.openclaw/canvas/
 
-# Generated during onboarding
-.openclaw/devices/pending.json
+# Skills (exclude installed skills, but keep .clawhub tracking)
+.openclaw/skills/*/
+!.openclaw/skills/.clawhub/
+.openclaw/workspace-**/skills/*/
+!.openclaw/workspace-**/skills/.clawhub/
+
+# OpenClaw Live Config (use template instead)
+.openclaw/openclaw.json
+.openclaw/openclaw.json.bak
+.openclaw/openclaw.json.project-backup
+.openclaw/update-check.json
+
+# Workspace Runtime Data (exclude personal data)
+.openclaw/workspace-*/.openclaw/workspace-state.json
+.openclaw/workspace-*/memory/
+
+# Keep Template Structure but Exclude Personal Data
+# Workspaces are committed, but runtime state is excluded above
 
 # Local backups
 *.bak
 *.bak.*
 backup.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

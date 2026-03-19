@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "skills": {
+    "typescript": {
+      "version": "1.0.2",
+      "installedAt": 1773797993800
+    },
+    "github-ops": {
+      "version": "1.0.0",
+      "installedAt": 1773797985656
+    },
+    "lb-zod-skill": {
+      "version": "0.1.0",
+      "installedAt": 1773798030266
+    },
+    "tmux": {
+      "version": "1.0.0",
+      "installedAt": 1773887221858
+    }
+  }
+}

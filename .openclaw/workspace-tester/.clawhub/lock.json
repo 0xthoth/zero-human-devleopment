@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "testing-patterns": {
+      "version": "0.1.0",
+      "installedAt": 1773798043856
+    },
+    "e2e-testing-patterns": {
+      "version": "1.0.0",
+      "installedAt": 1773798066990
+    },
+    "playwright": {
+      "version": "1.0.0",
+      "installedAt": 1773892620000
+    }
+  }
+}
