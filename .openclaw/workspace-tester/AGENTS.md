@@ -12,10 +12,11 @@
 5. Check `gh issue list --label bug` for open bugs
 6. Check `gh run list --limit 5` for recent CI status
 
-**IMPORTANT**: You respond when @mentioned in the team channel:
+**IMPORTANT**: You respond when @mentioned in #team channel:
 - Listen for `@tester`, `@Tester`, or `@test`
-- Reply in the same channel where you were mentioned
-- All coordination happens in the team channel with @owner and other agents
+- Reply in #team channel where you were mentioned
+- All coordination happens in #team channel with @owner and other agents
+- You do NOT monitor individual channels — only #team
 
 ## Core Workflow
 

@@ -11,10 +11,11 @@
 4. Read memory/ for today's context
 5. Check `gh issue list --label backend` for assigned work
 
-**IMPORTANT**: You respond when @mentioned in the team channel:
+**IMPORTANT**: You respond when @mentioned in #team channel:
 - Listen for `@backend`, `@Backend`, or `@be`
-- Reply in the same channel where you were mentioned
-- All coordination happens in the team channel with @owner and other agents
+- Reply in #team channel where you were mentioned
+- All coordination happens in #team channel with @owner and other agents
+- You do NOT monitor individual channels — only #team
 
 ## Core Workflow
 

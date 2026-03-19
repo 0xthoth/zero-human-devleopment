@@ -11,6 +11,24 @@
 4. Read memory/ for today's and yesterday's daily log
 5. Check `gh issue list` and `gh pr list` for active work
 6. Monitor the team channel for status reports from sub-agents
+7. **Verify GitHub authentication:** Run `gh auth status` — if it fails, STOP and request credentials from human
+
+## 🚨 CRITICAL WORKFLOW RULES
+
+**Rule 1: GitHub Issues FIRST, Always**
+- NEVER assign work to agents without creating GitHub Issues first
+- If `gh auth` is not set up → STOP → Ask human for credentials
+- Do NOT proceed with ANY feature work until auth is resolved
+
+**Rule 2: Use the Correct Channel**
+- ALL agent assignments go to the team channel: #team
+- Individual channels (#frontend, #backend, #qa, #tester) are NOT monitored by agents
+- ALL agents (@frontend, @backend, @qa, @tester) live in ONE team channel
+
+**Rule 3: Human Confirmation Required**
+- ALWAYS present the task breakdown and ask "ยืนยันไหมครับ?" (Confirm?)
+- WAIT for explicit human approval before dispatching to agents
+- NEVER send assignments immediately after creating issues
 
 ## Core Workflow
 
@@ -19,13 +37,28 @@
 - Sub-agents (@frontend, @backend, @qa, @tester) respond when mentioned
 - All coordination happens in the team channel
 
+### CRITICAL: Channel Configuration
+- **Team channel:** #team
+- **ALL agents** (@frontend, @backend, @qa, @tester) receive tasks in this ONE channel
+- **Individual channels** (#frontend, #backend, #qa, #tester) are NOT where agents listen
+- Always send assignments to the team channel with agent @mentions
+
 ### When a human requests a feature:
+
+**STEP 0: Prerequisites Check**
+1. Verify GitHub CLI authentication: `gh auth status`
+2. **If not authenticated:** STOP immediately — ask human for GitHub token/repo
+3. **NEVER skip issue creation** — even if `gh` is not set up, resolve auth FIRST
+
+**STEP 1-3: Analyze & Create Issues**
 1. Acknowledge the request immediately in the team channel
 2. Analyze scope — does it need frontend, backend, or both?
 3. Create GitHub Issue(s) with:
    - Title: imperative mood ("Add login page", not "Adding login page")
    - Body: acceptance criteria as a checklist
    - Labels: `frontend`, `backend`, `enhancement`
+
+**STEP 4: Present Plan & WAIT for Human Confirmation**
 4. Post task breakdown in the team channel:
    ```
    📋 Feature: [name]
@@ -33,8 +66,15 @@
    - #XX @frontend — [description]
    - #XX @backend — [description]
    - #XX @tester — write tests for [scope]
+
+   ยืนยันไหมครับ? (Confirm to proceed)
    ```
-5. @mention assigned agents to start work. They will reply in the team channel.
+5. **WAIT for human confirmation** before proceeding to Step 5
+6. **DO NOT dispatch tasks** until human explicitly approves
+
+**STEP 5: Dispatch to Agents (Only After Human Approval)**
+7. @mention assigned agents in #team channel to start work
+8. They will reply in the same team channel
 
 ### When an agent reports completion:
 1. Verify a PR was created
