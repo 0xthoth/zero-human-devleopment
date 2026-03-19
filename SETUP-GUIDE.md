@@ -2,11 +2,16 @@
 
 Step-by-step from zero to agents ready.
 
+> **This guide uses Docker mode** - everything runs in containers, no global CLI installations needed.
+> For local mode (without Docker), see [Prerequisites](#prerequisites).
+
 ---
 
-## 🚀 Quick Start (TL;DR)
+## 🚀 Quick Start (Docker Mode - TL;DR)
 
-The fastest path to get all 5 agents working:
+The fastest path to get all 5 agents working with Docker:
+
+> **No global installs needed!** OpenClaw, ClawHub, and tmux run inside containers.
 
 ```bash
 # 1. Configure environment
@@ -20,9 +25,8 @@ make build && make start    # Build and start containers
 # 3. Install dependencies
 make dev-install            # Auto-installs pnpm + dependencies
 
-# 4. Approve browser device
-make openclaw-devices-list
-make openclaw-devices-approve requestId=<id>
+# 4. Approve browser device (auto-approve, easy!)
+make openclaw-devices-auto-approve
 
 # 5. Login to ClawHub
 docker exec -it ${PROJECT_NAME}-gateway npx clawhub login --token <token>
@@ -43,11 +47,41 @@ gh repo create myproject --private --source=. --push
 
 ## Prerequisites
 
+### Docker Mode (Recommended - Everything in Containers)
+
+**Required:**
 - Docker + Docker Compose v2
 - GitHub CLI (`gh`) authenticated
-- Anthropic API key
-- (Optional) ClawHub account for skills
-- (Optional) Discord bot token (for chatting via Discord)
+
+**Optional:**
+- Anthropic API key (for AI agents)
+- ClawHub account (for skills)
+- Discord bot token (for Discord chat)
+
+**NOT needed** (already in containers):
+- ❌ `npm install -g openclaw` - runs inside gateway container
+- ❌ `pnpm add -g clawhub` - accessed via `docker exec ... npx clawhub`
+- ❌ `brew install tmux` - already in dev-server container
+
+---
+
+### Local Mode (Without Docker)
+
+If you prefer to run OpenClaw directly on your machine:
+
+```bash
+# Install OpenClaw CLI
+npm install -g openclaw
+
+# Install ClawHub CLI (for skills)
+pnpm add -g clawhub
+
+# Install tmux (optional, for monitoring)
+brew install tmux  # macOS
+apt install tmux   # Ubuntu/Debian
+```
+
+**Note:** This guide focuses on Docker mode. For local mode, use `openclaw` commands instead of `make` commands.
 
 ---
 
@@ -113,10 +147,33 @@ In another terminal:
 make openclaw-devices-list
 ```
 
-Find the pending request ID, then:
+**Easy methods:**
 
+**Option 1: Auto-approve (easiest)**
 ```bash
-make openclaw-devices-approve requestId=<the-request-id>
+make openclaw-devices-auto-approve
+```
+Automatically finds and approves the pending device. Done! ✅
+
+**Option 2: Copy ID only**
+```bash
+# Get just the ID (clean output, easy to copy)
+make openclaw-devices-id
+
+# Then approve
+make openclaw-devices-approve requestId=<paste-id>
+```
+
+**Example output:**
+```
+pairing_req_abc123xyz789  ← Easy to copy!
+```
+
+**Option 3: Manual (full JSON output)**
+```bash
+make openclaw-devices-list
+# Find requestId in JSON output
+make openclaw-devices-approve requestId=<paste-here>
 ```
 
 Refresh the browser — you're in.

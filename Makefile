@@ -6,7 +6,7 @@ OPENCLAW_GATEWAY_CONTAINER ?= $(PROJECT_NAME)-gateway
 
 .PHONY: help start stop restart build logs ssh \
         traefik-start traefik-stop traefik-logs \
-        openclaw-setup openclaw-cmd openclaw-devices-list openclaw-devices-approve \
+        openclaw-setup openclaw-cmd openclaw-devices-list openclaw-devices-id openclaw-devices-approve openclaw-devices-auto-approve \
         openclaw-discord-token openclaw-restart \
         update-password fix-data-permission dev-install \
         install-skills update-skills update-skills-local status init template-reset \
@@ -83,8 +83,16 @@ openclaw-cmd: ## Run OpenClaw CLI command (cmd="agents list")
 openclaw-devices-list: ## List connected OpenClaw devices
 	docker exec $(OPENCLAW_GATEWAY_CONTAINER) openclaw devices list
 
+openclaw-devices-id: ## Extract request ID (easy to copy)
+	@docker exec $(OPENCLAW_GATEWAY_CONTAINER) openclaw devices list | grep -o '"requestId":"[^"]*"' | cut -d'"' -f4
+
 openclaw-devices-approve: ## Approve OpenClaw device (requestId=<id>)
 	docker exec $(OPENCLAW_GATEWAY_CONTAINER) openclaw devices approve $(requestId)
+
+openclaw-devices-auto-approve: ## Auto-extract and approve device
+	$(eval REQUEST_ID := $(shell docker exec $(OPENCLAW_GATEWAY_CONTAINER) openclaw devices list | grep -o '"requestId":"[^"]*"' | cut -d'"' -f4))
+	@echo "Approving device: $(REQUEST_ID)"
+	docker exec $(OPENCLAW_GATEWAY_CONTAINER) openclaw devices approve $(REQUEST_ID)
 
 openclaw-pairing-list: ## List pending pairing requests
 	docker exec $(OPENCLAW_GATEWAY_CONTAINER) openclaw pairing list
