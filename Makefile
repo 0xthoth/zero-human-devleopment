@@ -6,10 +6,10 @@ OPENCLAW_GATEWAY_CONTAINER ?= $(PROJECT_NAME)-gateway
 
 .PHONY: help start stop restart build logs ssh \
         traefik-start traefik-stop traefik-logs \
-        openclaw-setup openclaw-config-setup openclaw-cmd openclaw-devices-list openclaw-devices-id openclaw-devices-approve openclaw-devices-auto-approve \
+        openclaw-setup openclaw-config-setup openclaw-cmd openclaw-devices-list openclaw-devices-id openclaw-devices-approve openclaw-devices-auto-approve openclaw-gateway-token \
         openclaw-discord-token openclaw-restart \
         update-password fix-data-permission dev-install \
-        install-skills update-skills update-skills-local status init template-reset \
+        install-skills update-skills status init template-reset \
         verify-template verify gateway-start gateway-stop gateway-restart gateway-status agents-list
 
 help: ## Show this help
@@ -97,15 +97,31 @@ openclaw-devices-auto-approve: ## Auto-extract and approve device
 	@if [ -z "$(REQUEST_ID)" ]; then \
 		echo "✓ No pending device pairing requests"; \
 		echo ""; \
-		echo "To create a pairing request:"; \
-		echo "  1. Open: http://$(PROJECT_NAME).openclaw.localhost"; \
-		echo "  2. Click through the device pairing prompt"; \
-		echo "  3. Run this command again to approve"; \
+		echo "To access the OpenClaw dashboard:"; \
+		echo "  1. Get your gateway token: make openclaw-gateway-token"; \
+		echo "  2. Open: http://$(PROJECT_NAME).openclaw.localhost"; \
+		echo "  3. Enter the token in Control UI Settings (⚙️ icon)"; \
+		echo "  4. Create device pairing and run this command again"; \
 	else \
 		echo "Approving device: $(REQUEST_ID)"; \
 		docker exec $(OPENCLAW_GATEWAY_CONTAINER) openclaw devices approve $(REQUEST_ID) && \
 		echo "✓ Device approved successfully!"; \
 	fi
+
+openclaw-gateway-token: ## Show gateway auth token for browser login
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🔑 Gateway Authentication Token"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@jq -r '.gateway.auth.token' .openclaw/openclaw.json 2>/dev/null || grep -A 2 '"auth"' .openclaw/openclaw.json | grep '"token"' | sed 's/.*"token": *"\([^"]*\)".*/\1/'
+	@echo ""
+	@echo "📋 How to use:"
+	@echo "  1. Copy the token above"
+	@echo "  2. Open: http://$(PROJECT_NAME).openclaw.localhost"
+	@echo "  3. Click Settings (⚙️ icon) in the Control UI"
+	@echo "  4. Paste the token in the 'Gateway Token' field"
+	@echo "  5. Save and refresh the page"
+	@echo ""
 
 openclaw-pairing-list: ## List pending pairing requests
 	docker exec $(OPENCLAW_GATEWAY_CONTAINER) openclaw pairing list
@@ -123,73 +139,98 @@ openclaw-restart: ## Restart OpenClaw gateway
 
 # --- Skills ---
 
-install-skills: ## Install all OpenClaw skills (Docker mode, run after first start, requires: clawhub login)
-	@echo "Installing shared skills..."
-	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) npx clawhub install github-cli --no-input
-	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) npx clawhub install github-ops --no-input
-	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) npx clawhub install code-review --no-input
-	@echo "Installing frontend skills..."
-	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) npx clawhub install typescript --no-input
-	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) npx clawhub install react-expert --no-input
-	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) npx clawhub install react-best-practices --no-input
-	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) npx clawhub install react-performance --no-input
-	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) npx clawhub install tailwind-v4-shadcn --no-input
-	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) npx clawhub install lb-tailwindcss-skill --no-input
-	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) npx clawhub install lb-zod-skill --no-input
-	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) npx clawhub install accessibility --no-input
-	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) npx clawhub install sovereign-accessibility-auditor --no-input
-	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) npx clawhub install testing-patterns --no-input
-	@echo "Installing backend skills..."
-	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) npx clawhub install nestjs --no-input
-	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) npx clawhub install postgres-db --no-input
-	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) npx clawhub install security-auditor --no-input
-	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) npx clawhub install security-scanner --no-input
-	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) npx clawhub install e2e-testing-patterns --no-input
-	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) npx clawhub install devops --no-input
-	@echo "All skills installed!"
+install-skills: ## Install all OpenClaw skills from lock.json (Docker mode, requires: clawhub login)
+	@echo "🔄 Installing skills from lock.json files..."
+	@echo ""
+	@echo "=== 1/6 Installing Shared Skills ==="
+	@if [ -f .openclaw/.clawhub/lock.json ]; then \
+		for skill in $$(cat .openclaw/.clawhub/lock.json | jq -r '.skills | keys[]'); do \
+			version=$$(cat .openclaw/.clawhub/lock.json | jq -r ".skills.\"$$skill\".version"); \
+			echo "  Installing $$skill@$$version..."; \
+			docker exec $(OPENCLAW_GATEWAY_CONTAINER) bash -c "cd /home/node/.openclaw && npx clawhub install $$skill --version $$version --force" 2>/dev/null || echo "  ⚠️  Failed to install $$skill"; \
+		done && \
+		echo "✅ Shared skills installed"; \
+	else \
+		echo "⚠️  No shared skills lock file"; \
+	fi
+	@echo ""
+	@echo "=== 2/6 Installing Owner Skills ==="
+	@if [ -f .openclaw/workspace-owner/.clawhub/lock.json ]; then \
+		for skill in $$(cat .openclaw/workspace-owner/.clawhub/lock.json | jq -r '.skills | keys[]'); do \
+			version=$$(cat .openclaw/workspace-owner/.clawhub/lock.json | jq -r ".skills.\"$$skill\".version"); \
+			echo "  Installing $$skill@$$version..."; \
+			docker exec $(OPENCLAW_GATEWAY_CONTAINER) bash -c "cd /home/node/.openclaw/workspace-owner && npx clawhub install $$skill --version $$version --force" 2>/dev/null || echo "  ⚠️  Failed to install $$skill"; \
+		done && \
+		echo "✅ Owner skills installed"; \
+	else \
+		echo "⚠️  No owner skills lock file"; \
+	fi
+	@echo ""
+	@echo "=== 3/6 Installing Frontend Skills ==="
+	@if [ -f .openclaw/workspace-frontend/.clawhub/lock.json ]; then \
+		for skill in $$(cat .openclaw/workspace-frontend/.clawhub/lock.json | jq -r '.skills | keys[]'); do \
+			version=$$(cat .openclaw/workspace-frontend/.clawhub/lock.json | jq -r ".skills.\"$$skill\".version"); \
+			echo "  Installing $$skill@$$version..."; \
+			docker exec $(OPENCLAW_GATEWAY_CONTAINER) bash -c "cd /home/node/.openclaw/workspace-frontend && npx clawhub install $$skill --version $$version --force" 2>/dev/null || echo "  ⚠️  Failed to install $$skill"; \
+		done && \
+		echo "✅ Frontend skills installed"; \
+	else \
+		echo "⚠️  No frontend skills lock file"; \
+	fi
+	@echo ""
+	@echo "=== 4/6 Installing Backend Skills ==="
+	@if [ -f .openclaw/workspace-backend/.clawhub/lock.json ]; then \
+		for skill in $$(cat .openclaw/workspace-backend/.clawhub/lock.json | jq -r '.skills | keys[]'); do \
+			version=$$(cat .openclaw/workspace-backend/.clawhub/lock.json | jq -r ".skills.\"$$skill\".version"); \
+			echo "  Installing $$skill@$$version..."; \
+			docker exec $(OPENCLAW_GATEWAY_CONTAINER) bash -c "cd /home/node/.openclaw/workspace-backend && npx clawhub install $$skill --version $$version --force" 2>/dev/null || echo "  ⚠️  Failed to install $$skill"; \
+		done && \
+		echo "✅ Backend skills installed"; \
+	else \
+		echo "⚠️  No backend skills lock file"; \
+	fi
+	@echo ""
+	@echo "=== 5/6 Installing QA Lead Skills ==="
+	@if [ -f .openclaw/workspace-qa-lead/.clawhub/lock.json ]; then \
+		for skill in $$(cat .openclaw/workspace-qa-lead/.clawhub/lock.json | jq -r '.skills | keys[]'); do \
+			version=$$(cat .openclaw/workspace-qa-lead/.clawhub/lock.json | jq -r ".skills.\"$$skill\".version"); \
+			echo "  Installing $$skill@$$version..."; \
+			docker exec $(OPENCLAW_GATEWAY_CONTAINER) bash -c "cd /home/node/.openclaw/workspace-qa-lead && npx clawhub install $$skill --version $$version --force" 2>/dev/null || echo "  ⚠️  Failed to install $$skill"; \
+		done && \
+		echo "✅ QA Lead skills installed"; \
+	else \
+		echo "⚠️  No QA Lead skills lock file"; \
+	fi
+	@echo ""
+	@echo "=== 6/6 Installing Tester Skills ==="
+	@if [ -f .openclaw/workspace-tester/.clawhub/lock.json ]; then \
+		for skill in $$(cat .openclaw/workspace-tester/.clawhub/lock.json | jq -r '.skills | keys[]'); do \
+			version=$$(cat .openclaw/workspace-tester/.clawhub/lock.json | jq -r ".skills.\"$$skill\".version"); \
+			echo "  Installing $$skill@$$version..."; \
+			docker exec $(OPENCLAW_GATEWAY_CONTAINER) bash -c "cd /home/node/.openclaw/workspace-tester && npx clawhub install $$skill --version $$version --force" 2>/dev/null || echo "  ⚠️  Failed to install $$skill"; \
+		done && \
+		echo "✅ Tester skills installed"; \
+	else \
+		echo "⚠️  No tester skills lock file"; \
+	fi
+	@echo ""
+	@echo "🎉 All skills installed!"
+	@echo "💡 Restart gateway: make openclaw-restart"
+
 
 update-skills: ## Update all OpenClaw skills (Docker mode)
 	@echo "🔄 Updating all skills (Docker mode)..."
-	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) bash -c "cd /home/node/.openclaw/skills && npx clawhub update --all"
-	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) bash -c "cd /home/node/.openclaw/workspace-owner/skills && npx clawhub update --all"
-	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) bash -c "cd /home/node/.openclaw/workspace-frontend/skills && npx clawhub update --all"
-	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) bash -c "cd /home/node/.openclaw/workspace-backend/skills && npx clawhub update --all"
-	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) bash -c "cd /home/node/.openclaw/workspace-qa-lead/skills && npx clawhub update --all"
-	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) bash -c "cd /home/node/.openclaw/workspace-tester/skills && npx clawhub update --all"
-	@echo "✅ All skills updated! Restart gateway: make openclaw-restart"
-
-update-skills-local: ## Update all OpenClaw skills (Local mode, no Docker)
-	@echo "🔄 Updating All Skills to Latest Versions (Local)..."
-	@echo "📁 Project root: $(shell pwd)"
 	@echo ""
-	@echo "=== 1/6 Updating Shared Skills (all agents) ==="
-	cd .openclaw/skills && clawhub update --all
-	@echo "✅ Shared skills updated"
+	@echo "=== Updating Skills (checking all workspaces) ==="
+	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) bash -c "cd /home/node/.openclaw && npx clawhub update --all --force 2>/dev/null" && echo "✅ Shared skills updated" || echo "⚠️  No shared skills"
+	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) bash -c "cd /home/node/.openclaw/workspace-owner/skills && npx clawhub update --all --force 2>/dev/null" && echo "✅ Owner skills updated" || echo "⚠️  No owner skills"
+	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) bash -c "cd /home/node/.openclaw/workspace-frontend/skills && npx clawhub update --all --force 2>/dev/null" && echo "✅ Frontend skills updated" || echo "⚠️  No frontend skills"
+	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) bash -c "cd /home/node/.openclaw/workspace-backend/skills && npx clawhub update --all --force 2>/dev/null" && echo "✅ Backend skills updated" || echo "⚠️  No backend skills"
+	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) bash -c "cd /home/node/.openclaw/workspace-qa-lead/skills && npx clawhub update --all --force 2>/dev/null" && echo "✅ QA Lead skills updated" || echo "⚠️  No QA Lead skills"
+	-docker exec $(OPENCLAW_GATEWAY_CONTAINER) bash -c "cd /home/node/.openclaw/workspace-tester/skills && npx clawhub update --all --force 2>/dev/null" && echo "✅ Tester skills updated" || echo "⚠️  No tester skills"
 	@echo ""
-	@echo "=== 2/6 Updating Owner Skills ==="
-	cd .openclaw/workspace-owner/skills && clawhub update --all
-	@echo "✅ Owner skills updated"
-	@echo ""
-	@echo "=== 3/6 Updating Frontend Skills ==="
-	cd .openclaw/workspace-frontend/skills && clawhub update --all
-	@echo "✅ Frontend skills updated"
-	@echo ""
-	@echo "=== 4/6 Updating Backend Skills ==="
-	cd .openclaw/workspace-backend/skills && clawhub update --all
-	@echo "✅ Backend skills updated"
-	@echo ""
-	@echo "=== 5/6 Updating QA Lead Skills ==="
-	cd .openclaw/workspace-qa-lead/skills && clawhub update --all
-	@echo "✅ QA Lead skills updated"
-	@echo ""
-	@echo "=== 6/6 Updating Tester Skills ==="
-	cd .openclaw/workspace-tester/skills && clawhub update --all
-	@echo "✅ Tester skills updated"
-	@echo ""
-	@echo "🎉 All skills updated to latest versions!"
-	@echo ""
-	@echo "Next step: Restart the gateway"
-	@echo "  make gateway-restart"
+	@echo "🎉 All skills updated!"
+	@echo "💡 Restart gateway: make openclaw-restart"
 
 # --- Template Management ---
 

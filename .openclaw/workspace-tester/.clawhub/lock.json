@@ -3,15 +3,15 @@
   "skills": {
     "testing-patterns": {
       "version": "0.1.0",
-      "installedAt": 1773798043856
+      "installedAt": 1773911586923
     },
     "e2e-testing-patterns": {
       "version": "1.0.0",
-      "installedAt": 1773798066990
+      "installedAt": 1773911580029
     },
     "playwright": {
       "version": "1.0.0",
-      "installedAt": 1773892620000
+      "installedAt": 1773911583760
     }
   }
 }
