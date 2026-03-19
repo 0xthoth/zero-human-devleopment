@@ -2,6 +2,10 @@
 
 A production-ready multi-agent system for collaborative software development using OpenClaw.
 
+> **🐳 Docker Mode (Recommended):** See `/SETUP-GUIDE.md` for complete Docker setup
+>
+> **💻 Local Mode:** This README shows local mode setup (OpenClaw installed globally)
+
 ## Features
 
 - **5 Specialized Agents:** Owner (coordinator), Frontend, Backend, QA Lead, Tester
@@ -44,9 +48,13 @@ owner@team.com, frontend@team.com, backend@team.com, qa@team.com, tester@team.co
 
 ## Quick Start
 
-### 1. Prerequisites
+> **📖 Full Setup Guide:** See `/SETUP-GUIDE.md` for complete Docker mode setup (recommended)
+>
+> **This guide shows LOCAL mode** - running OpenClaw directly on your machine without Docker.
+
+### 1. Prerequisites (Local Mode)
 ```bash
-# Install OpenClaw
+# Install OpenClaw CLI
 npm install -g openclaw
 
 # Install ClawHub CLI
@@ -54,7 +62,10 @@ pnpm add -g clawhub
 
 # Install tmux (for monitoring)
 brew install tmux  # macOS
+apt install tmux   # Ubuntu/Debian
 ```
+
+**For Docker mode:** Skip these installs and follow `/SETUP-GUIDE.md` instead.
 
 ### 2. Configure Discord Bot
 1. Create Discord server with **TWO channels**:

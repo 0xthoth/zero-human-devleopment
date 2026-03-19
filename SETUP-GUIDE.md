@@ -5,6 +5,16 @@ Step-by-step from zero to agents ready.
 > **This guide uses Docker mode** - everything runs in containers, no global CLI installations needed.
 > For local mode (without Docker), see [Prerequisites](#prerequisites).
 
+## 📚 OpenClaw Resources
+
+**New to OpenClaw?** Learn more:
+- **Official Docs:** https://docs.openclaw.ai
+- **GitHub:** https://github.com/openclaw/openclaw
+- **Installation Guide:** https://docs.openclaw.ai/getting-started
+- **Discord Community:** https://discord.gg/openclaw
+
+**This guide covers:** Setting up a 5-agent development team using OpenClaw in Docker mode.
+
 ---
 
 ## 🚀 Quick Start (Docker Mode - TL;DR)
@@ -18,26 +28,30 @@ The fastest path to get all 5 agents working with Docker:
 cp .env.example .env
 # Edit .env with your keys
 
-# 2. Start everything
+# 2. Configure OpenClaw
+cp .openclaw/openclaw.json.template .openclaw/openclaw.json
+# Edit openclaw.json with Discord IDs (or skip Discord)
+
+# 3. Start everything
 make traefik-start          # Once per machine
 make build && make start    # Build and start containers
 
-# 3. Install dependencies
+# 4. Install dependencies
 make dev-install            # Auto-installs pnpm + dependencies
 
-# 4. Approve browser device (auto-approve, easy!)
+# 5. Approve browser device (auto-approve, easy!)
 make openclaw-devices-auto-approve
 
-# 5. Login to ClawHub
+# 6. Login to ClawHub
 docker exec -it ${PROJECT_NAME}-gateway npx clawhub login --token <token>
 
-# 6. Install ALL skills (one command!)
+# 7. Install ALL skills (one command!)
 make install-skills         # Installs 16+ skills for all agents
 
-# 7. Create GitHub repo
+# 8. Create GitHub repo
 gh repo create myproject --private --source=. --push
 
-# 8. Test agents in Discord
+# 9. Test agents in Discord (or Web UI)
 # @frontend, @backend, @qa, @tester - all ready!
 ```
 
@@ -46,6 +60,9 @@ gh repo create myproject --private --source=. --push
 ---
 
 ## Prerequisites
+
+> **What is OpenClaw?** A multi-agent AI platform for software development.
+> See [OpenClaw Resources](#-openclaw-resources) for documentation and installation guides.
 
 ### Docker Mode (Recommended - Everything in Containers)
 
@@ -81,7 +98,9 @@ brew install tmux  # macOS
 apt install tmux   # Ubuntu/Debian
 ```
 
-**Note:** This guide focuses on Docker mode. For local mode, use `openclaw` commands instead of `make` commands.
+**Note:** This guide focuses on Docker mode. For local mode setup, see:
+- Official guide: https://docs.openclaw.ai/installation
+- Use `openclaw` commands instead of `make` commands
 
 ---
 
@@ -106,7 +125,35 @@ GITHUB_TOKEN=ghp_xxxx
 
 ---
 
-## Step 2: Start Traefik (once, shared across all projects)
+## Step 2: Configure OpenClaw
+
+```bash
+# Copy template to live config
+cp .openclaw/openclaw.json.template .openclaw/openclaw.json
+```
+
+Edit `.openclaw/openclaw.json` and replace placeholders:
+
+```bash
+# Required replacements:
+<YOUR_DISCORD_BOT_TOKEN>      → Your Discord bot token (from Step 10)
+<YOUR_GUILD_ID>               → Your Discord server ID
+<YOUR_OWNER_CHANNEL_ID>       → Your #owner channel ID (private planning)
+<YOUR_TEAM_CHANNEL_ID>        → Your #team channel ID (public coordination)
+<YOUR_DISCORD_USER_ID>        → Your Discord user ID
+```
+
+**How to get Discord IDs:**
+1. Enable Developer Mode: Discord Settings → Advanced → Developer Mode ✅
+2. Right-click server name → Copy Server ID (Guild ID)
+3. Right-click channel → Copy Channel ID
+4. Right-click your username → Copy User ID
+
+**Or skip Discord setup:** Remove Discord config from `openclaw.json` and use web UI only.
+
+---
+
+## Step 3: Start Traefik (once, shared across all projects)
 
 ```bash
 make traefik-start
@@ -116,7 +163,7 @@ Verify: open http://traefik.localhost
 
 ---
 
-## Step 3: Build & Start
+## Step 4: Build & Start
 
 ```bash
 make build          # builds dev-server image (~5 min first time)
@@ -125,7 +172,7 @@ make start          # starts dev-server + openclaw-gateway
 
 ---
 
-## Step 4: Install dependencies
+## Step 5: Install dependencies
 
 The template uses pnpm for better monorepo support. Install dependencies:
 
@@ -137,7 +184,7 @@ This automatically installs pnpm (if not present) and installs all dependencies.
 
 ---
 
-## Step 5: Approve browser device
+## Step 6: Approve browser device
 
 Open http://${PROJECT_NAME}.openclaw.localhost — you'll see "pairing required".
 
@@ -180,7 +227,7 @@ Refresh the browser — you're in.
 
 ---
 
-## Step 6: Login to ClawHub (for skills)
+## Step 7: Login to ClawHub (for skills)
 
 ```bash
 docker exec -it ${PROJECT_NAME}-gateway npx clawhub login
@@ -200,7 +247,7 @@ docker exec ${PROJECT_NAME}-gateway npx clawhub login --token clh_xxxxx...
 
 ---
 
-## Step 7: Install skills
+## Step 8: Install skills
 
 ### Easy Way (Recommended) - One Command
 
@@ -247,7 +294,7 @@ docker exec ${PROJECT_NAME}-gateway bash -c "cd /home/node/.openclaw/workspace-t
 
 ---
 
-## Step 8: Create GitHub repo
+## Step 9: Create GitHub repo
 
 ```bash
 git init
@@ -260,7 +307,7 @@ Agents need a GitHub repo for branches and PRs.
 
 ---
 
-## Step 9: Verify SSH (gateway → dev-server)
+## Step 10: Verify SSH (gateway → dev-server)
 
 ```bash
 docker exec ${PROJECT_NAME}-gateway ssh dev@dev-server "echo OK"
@@ -275,7 +322,7 @@ docker exec ${PROJECT_NAME}-gateway apt-get install -y openssh-client 2>/dev/nul
 
 ---
 
-## Step 10: Connect Discord (optional)
+## Step 11: Connect Discord (optional)
 
 Create a Discord bot at https://discord.com/developers/applications:
 
@@ -293,7 +340,7 @@ This updates `openclaw.json` and restarts the gateway automatically.
 
 ---
 
-## Step 11: Start chatting
+## Step 12: Start chatting
 
 **Web UI:** Open http://${PROJECT_NAME}.openclaw.localhost
 
@@ -448,6 +495,18 @@ If dev-server restart-loops after rebuild with `chown: Invalid argument` on a `.
 rm -f data/dev/.local/share/code-server/code-server-ipc.sock
 docker compose up -d dev-server
 ```
+
+### Getting Help
+
+**OpenClaw Issues:**
+- Documentation: https://docs.openclaw.ai
+- GitHub Issues: https://github.com/openclaw/openclaw/issues
+- Discord: https://discord.gg/openclaw
+
+**This Template Issues:**
+- Check `.openclaw/CONFIG.md` for quick reference
+- Review agent workflows in `.openclaw/workspace-*/AGENTS.md`
+- Open issue in your project repository
 
 ---
 
