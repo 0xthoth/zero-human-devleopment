@@ -45,7 +45,8 @@ make openclaw-pair-quick
 # The command waits and auto-approves the pairing!
 
 # 6. Login to ClawHub
-docker exec -it ${PROJECT_NAME}-gateway npx clawhub login --token <token>
+docker exec -it ${PROJECT_NAME}-gateway npx clawhub login
+# It shows a URL → copy the token from URL → paste when prompted
 
 # 7. Install ALL skills (one command!)
 make install-skills         # Installs 16+ skills for all agents
@@ -268,19 +269,23 @@ Refresh the browser — you're in.
 
 ## Step 7: Login to ClawHub (for skills)
 
+**Interactive login (recommended):**
+
 ```bash
 docker exec -it ${PROJECT_NAME}-gateway npx clawhub login
 ```
 
-It shows a URL with a token like:
+**What happens:**
+1. It shows a URL: `http://127.0.0.1:XXXXX/callback#token=clh_xxxxx...`
+2. **Before clicking anything:** Copy the token from the URL (the part after `#token=`)
+3. The CLI will prompt: `Enter your token:`
+4. Paste the token you copied and press Enter
+5. ✅ Login complete!
 
-```
-http://127.0.0.1:XXXXX/callback#token=clh_xxxxx...
-```
-
-The browser can't reach this inside Docker. Extract the token from the URL and run:
+**Alternative (if interactive doesn't work):**
 
 ```bash
+# Copy the token from the URL first, then run:
 docker exec ${PROJECT_NAME}-gateway npx clawhub login --token clh_xxxxx...
 ```
 

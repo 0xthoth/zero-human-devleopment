@@ -10,14 +10,20 @@
 - **Code:** /home/node/project/apps/api
 
 ## Commands via Dev-Server SSH
-Run builds and tests inside the dev-server (isolated env with Node.js, npm, git):
+Run builds and tests inside the dev-server (isolated env with Node.js, npm, git).
+
+**IMPORTANT: Use tmux for all commands so the human can track your activity!**
+
 ```bash
-ssh dev@dev-server "cd ~/project/apps/api && npm run lint"
-ssh dev@dev-server "cd ~/project/apps/api && npm test"
-ssh dev@dev-server "cd ~/project/apps/api && npm run build"
-ssh dev@dev-server "cd ~/project/apps/api && npm run start:dev"
-ssh dev@dev-server "cd ~/project/apps/api && npm run test:e2e"
+# All commands should run in your dedicated tmux session: agent-backend
+ssh dev@dev-server "tmux send-keys -t agent-backend 'cd ~/project/apps/api && npm run lint' Enter"
+ssh dev@dev-server "tmux send-keys -t agent-backend 'cd ~/project/apps/api && npm test' Enter"
+ssh dev@dev-server "tmux send-keys -t agent-backend 'cd ~/project/apps/api && npm run build' Enter"
+ssh dev@dev-server "tmux send-keys -t agent-backend 'cd ~/project/apps/api && npm run start:dev' Enter"
+ssh dev@dev-server "tmux send-keys -t agent-backend 'cd ~/project/apps/api && npm run test:e2e' Enter"
 ```
+
+**Why tmux?** The human can watch your work in real-time: `make tmux-watch agent=backend`
 
 ## Commands (local, from apps/api/)
 ```bash

@@ -13,7 +13,8 @@ A production-ready multi-agent system for collaborative software development usi
 - **Skill Distribution:** Shared skills (all agents) + agent-specific skills
 - **Git Identity:** Each agent commits with unique identity
 - **CI/CD Integration:** Playwright E2E testing with full CI/CD workflow
-- **Tmux Monitoring:** Real-time process monitoring for all agents ✅
+- **Complete Activity Tracking:** Monitor both agent thinking (Gateway) and execution (Dev-Server) 🔍
+  - See [COMPLETE-TRACKING-GUIDE.md](COMPLETE-TRACKING-GUIDE.md) for full details
 - **Learning System:** Agents learn from past mistakes (.learnings/)
 
 ---
@@ -417,8 +418,35 @@ Add workflows in `.github/workflows/`:
 
 ## Monitoring
 
-### Tmux Sessions ✅
-All agents use tmux for long-running processes (dev servers, test watch, builds).
+### Complete Activity Tracking 🔍
+
+Track agents at **two levels** for complete visibility:
+
+1. **Gateway (Agent Brain 🧠)** - What agents think and decide
+2. **Dev-Server (Execution ⚙️)** - What commands actually run
+
+**Quick commands:**
+```bash
+# Gateway tracking - see agent thinking
+make agent-sessions                    # List all conversations
+make agent-session-view agent=owner    # View latest session
+
+# Dev-server tracking - see command execution
+make tmux-list                        # List all tmux sessions
+make tmux-watch agent=frontend        # Watch frontend terminal
+
+# Watch BOTH at once (split screen)
+make agent-watch-all agent=backend    # Best for active monitoring
+```
+
+**Full guides:**
+- **[COMPLETE-TRACKING-GUIDE.md](COMPLETE-TRACKING-GUIDE.md)** - Complete guide to both levels
+- **[GATEWAY-TRACKING.md](GATEWAY-TRACKING.md)** - Gateway-level tracking (thinking)
+- **[AGENT-TMUX-TRACKING.md](AGENT-TMUX-TRACKING.md)** - Dev-server tracking (execution)
+
+### Legacy Tmux Sessions (Local Mode)
+
+For local mode installations, use the tmux socket approach:
 
 ```bash
 # Setup socket
@@ -442,6 +470,10 @@ See `docs/TMUX-IMPLEMENTATION.md` for complete guide.
 
 ### Logs
 ```bash
+# Gateway logs
+make gateway-logs
+
+# Agent-specific logs (if available)
 tail -f .openclaw/logs/<agent>.log
 ```
 

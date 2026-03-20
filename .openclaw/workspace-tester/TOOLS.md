@@ -11,18 +11,23 @@
 | E2E (BE) | Supertest | `apps/api/test/*.e2e-spec.ts` |
 
 ## Commands via Dev-Server SSH
-Run all tests inside the dev-server (isolated env with Node.js, npm, git):
-```bash
-# Frontend
-ssh dev@dev-server "cd ~/project/apps/web && npm test -- --run"
-ssh dev@dev-server "cd ~/project/apps/web && npm test -- --run --coverage"
-ssh dev@dev-server "cd ~/project/apps/web && npx playwright test"
+Run all tests inside the dev-server (isolated env with Node.js, npm, git).
 
-# Backend
-ssh dev@dev-server "cd ~/project/apps/api && npm test"
-ssh dev@dev-server "cd ~/project/apps/api && npm run test:e2e"
-ssh dev@dev-server "cd ~/project/apps/api && npm run test:cov"
+**IMPORTANT: Use tmux for all commands so the human can track your activity!**
+
+```bash
+# Frontend tests in tmux session: agent-tester
+ssh dev@dev-server "tmux send-keys -t agent-tester 'cd ~/project/apps/web && npm test -- --run' Enter"
+ssh dev@dev-server "tmux send-keys -t agent-tester 'cd ~/project/apps/web && npm test -- --run --coverage' Enter"
+ssh dev@dev-server "tmux send-keys -t agent-tester 'cd ~/project/apps/web && npx playwright test' Enter"
+
+# Backend tests in tmux session: agent-tester
+ssh dev@dev-server "tmux send-keys -t agent-tester 'cd ~/project/apps/api && npm test' Enter"
+ssh dev@dev-server "tmux send-keys -t agent-tester 'cd ~/project/apps/api && npm run test:e2e' Enter"
+ssh dev@dev-server "tmux send-keys -t agent-tester 'cd ~/project/apps/api && npm run test:cov' Enter"
 ```
+
+**Why tmux?** The human can watch your work in real-time: `make tmux-watch agent=tester`
 
 ## Commands (local)
 ```bash

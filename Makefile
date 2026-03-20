@@ -442,3 +442,82 @@ gateway-status: ## Show OpenClaw gateway status (Local mode)
 agents-list: ## List all configured agents (Local mode)
 	@echo "👥 Configured Agents:"
 	@openclaw agents list
+
+# --- Agent Tmux Sessions ---
+
+tmux-setup: ## Setup tmux sessions for all agents
+	@echo "🔧 Setting up agent tmux sessions in dev-server..."
+	@docker compose exec -u $(DEV_USER) dev-server mkdir -p /home/$(DEV_USER)/logs
+	@docker compose exec -u $(DEV_USER) dev-server bash -c 'for agent in frontend backend qa tester owner; do tmux new-session -d -s "agent-$$agent" -n "work" 2>/dev/null || echo "Session agent-$$agent already exists"; done'
+	@echo "✅ Tmux sessions created for all agents"
+	@echo ""
+	@echo "📋 View agent activity:"
+	@echo "  make tmux-watch agent=frontend"
+	@echo "  make tmux-watch agent=backend"
+	@echo "  make tmux-list"
+
+tmux-watch: ## Watch agent tmux session (use: make tmux-watch agent=frontend)
+	@if [ -z "$(agent)" ]; then \
+		echo "❌ Please specify agent: make tmux-watch agent=frontend"; \
+		exit 1; \
+	fi
+	@echo "👀 Attaching to agent-$(agent) tmux session..."
+	@echo "   Press Ctrl+B then D to detach"
+	@docker compose exec -u $(DEV_USER) dev-server tmux attach -t agent-$(agent)
+
+tmux-list: ## List all agent tmux sessions
+	@echo "📋 Active tmux sessions:"
+	@docker compose exec -u $(DEV_USER) dev-server tmux ls 2>/dev/null || echo "No tmux sessions running. Run: make tmux-setup"
+
+tmux-kill: ## Kill all agent tmux sessions
+	@echo "🛑 Killing all agent tmux sessions..."
+	@docker compose exec -u $(DEV_USER) dev-server bash -c 'for agent in frontend backend qa tester owner; do tmux kill-session -t "agent-$$agent" 2>/dev/null || true; done'
+	@echo "✅ All agent sessions killed"
+
+# --- Gateway Activity Tracking ---
+
+gateway-logs: ## Show gateway container logs (live)
+	@docker logs -f 0xthoth-gateway
+
+gateway-logs-tail: ## Show last 50 lines of gateway logs
+	@docker logs 0xthoth-gateway --tail 50
+
+agent-sessions: ## List all agent session logs
+	@echo "📋 Agent Session Logs:"
+	@docker exec 0xthoth-gateway find /home/node/.openclaw/agents -name "*.jsonl" -type f 2>/dev/null | grep -v sessions.json | while read log; do \
+		agent=$$(echo $$log | cut -d'/' -f6); \
+		session=$$(basename $$log .jsonl); \
+		lines=$$(docker exec 0xthoth-gateway sh -c "wc -l < $$log" 2>/dev/null || echo "0"); \
+		echo "  📄 $$agent: $$session ($$lines messages)"; \
+	done
+
+agent-session-view: ## View agent session log (use: make agent-session-view agent=owner)
+	@if [ -z "$(agent)" ]; then \
+		echo "❌ Please specify agent: make agent-session-view agent=owner"; \
+		exit 1; \
+	fi
+	@echo "📋 Latest session for $(agent):"
+	@LATEST=$$(docker exec 0xthoth-gateway find /home/node/.openclaw/agents/$(agent)/sessions -name "*.jsonl" -type f 2>/dev/null | grep -v sessions.json | sort | tail -1); \
+	if [ -z "$$LATEST" ]; then \
+		echo "❌ No sessions found for $(agent)"; \
+	else \
+		echo "📂 $$LATEST"; \
+		echo ""; \
+		echo "Last 20 messages (use 'docker exec 0xthoth-gateway cat $$LATEST | jq' for full):"; \
+		echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"; \
+		docker exec 0xthoth-gateway sh -c "tail -20 $$LATEST | jq -c '{type, role: .message.role, content_preview: (.message.content[0].type // \"unknown\")}' 2>/dev/null || tail -20 $$LATEST"; \
+	fi
+
+agent-watch-all: ## Watch both gateway and dev-server for an agent (split screen)
+	@if [ -z "$(agent)" ]; then \
+		echo "❌ Please specify agent: make agent-watch-all agent=frontend"; \
+		exit 1; \
+	fi
+	@echo "🔍 Setting up split view for $(agent)..."
+	@echo "  Left: Gateway logs"
+	@echo "  Right: Dev-server tmux"
+	@tmux new-session -d -s "watch-$(agent)" \; \
+		send-keys "make gateway-logs" Enter \; \
+		split-window -h \; \
+		send-keys "make tmux-watch agent=$(agent)" Enter \; \
+		attach-session -t "watch-$(agent)"

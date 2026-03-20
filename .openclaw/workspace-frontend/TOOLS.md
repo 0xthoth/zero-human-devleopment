@@ -9,13 +9,19 @@
 - **Code:** /home/node/project/apps/web
 
 ## Commands via Dev-Server SSH
-Run builds and tests inside the dev-server (isolated env with Node.js, npm, git):
+Run builds and tests inside the dev-server (isolated env with Node.js, npm, git).
+
+**IMPORTANT: Use tmux for all commands so the human can track your activity!**
+
 ```bash
-ssh dev@dev-server "cd ~/project/apps/web && npm run lint"
-ssh dev@dev-server "cd ~/project/apps/web && npm test -- --run"
-ssh dev@dev-server "cd ~/project/apps/web && npm run build"
-ssh dev@dev-server "cd ~/project/apps/web && npm run dev"
+# All commands should run in your dedicated tmux session: agent-frontend
+ssh dev@dev-server "tmux send-keys -t agent-frontend 'cd ~/project/apps/web && npm run lint' Enter"
+ssh dev@dev-server "tmux send-keys -t agent-frontend 'cd ~/project/apps/web && npm test -- --run' Enter"
+ssh dev@dev-server "tmux send-keys -t agent-frontend 'cd ~/project/apps/web && npm run build' Enter"
+ssh dev@dev-server "tmux send-keys -t agent-frontend 'cd ~/project/apps/web && npm run dev' Enter"
 ```
+
+**Why tmux?** The human can watch your work in real-time: `make tmux-watch agent=frontend`
 
 ## Commands (local, from apps/web/)
 ```bash

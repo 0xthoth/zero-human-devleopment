@@ -20,7 +20,6 @@ traefik_letsencrypt/
 # OpenClaw Runtime Data (exclude, but keep template structure)
 .openclaw/agents/
 .openclaw/sandboxes/
-.openclaw/shared/
 .openclaw/identity/
 .openclaw/devices/
 .openclaw/logs/
