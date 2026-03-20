@@ -39,8 +39,10 @@ make build && make start    # Build and start containers
 # 4. Install dependencies
 make dev-install            # Auto-installs pnpm + dependencies
 
-# 5. Approve browser device (auto-approve, easy!)
-make openclaw-devices-auto-approve
+# 5. Setup browser pairing (one command, auto-approves!)
+make openclaw-pair-quick
+# Follow on-screen instructions: copy token → open browser → paste token
+# The command waits and auto-approves the pairing!
 
 # 6. Login to ClawHub
 docker exec -it ${PROJECT_NAME}-gateway npx clawhub login --token <token>
@@ -223,30 +225,30 @@ This automatically installs pnpm (if not present) and installs all dependencies.
 
 ## Step 6: Approve browser device
 
-Open http://${PROJECT_NAME}.openclaw.localhost — you'll see "pairing required".
-
-In another terminal:
-
+**🚀 Easiest Method - One Command Setup:**
 ```bash
-make openclaw-devices-list
+make openclaw-pair-quick
 ```
+This command will:
+1. Show you the gateway token
+2. Tell you to open http://${PROJECT_NAME}.openclaw.localhost
+3. Guide you to paste the token in Settings (⚙️ icon)
+4. **Auto-watch and approve** the pairing request
+5. Confirm when successful ✅
 
-**Easy methods:**
+**Alternative - Manual steps:**
 
-**Option 1: Auto-approve (easiest)**
+If the browser shows "pairing required", run:
 ```bash
 make openclaw-devices-auto-approve
 ```
-Automatically finds and approves the pending device. Done! ✅
+This automatically finds and approves the pending device.
 
-**Option 2: Copy ID only**
+**Advanced - Watch mode:**
 ```bash
-# Get just the ID (clean output, easy to copy)
-make openclaw-devices-id
-
-# Then approve
-make openclaw-devices-approve requestId=<paste-id>
+make openclaw-pair-watch
 ```
+Continuously watches for pairing requests and auto-approves them. Useful if you're setting up multiple browsers.
 
 **Example output:**
 ```
@@ -766,8 +768,11 @@ make openclaw-restart       # Restart gateway (Docker mode)
 make gateway-restart        # Restart gateway (Local mode)
 
 # Device management
-make openclaw-devices-auto-approve  # Auto-approve browser device
-make openclaw-devices-list          # List pending devices
+make openclaw-pair-quick            # Quick setup: shows token + auto-approves (EASIEST!)
+make openclaw-pair-watch            # Watch and auto-approve pairing requests
+make openclaw-devices-auto-approve  # Auto-approve pending device
+make openclaw-devices-list          # List pending/paired devices
+make openclaw-gateway-token         # Show gateway authentication token
 
 # Skills
 make install-skills         # Install all skills (Docker mode)

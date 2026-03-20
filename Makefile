@@ -93,7 +93,7 @@ openclaw-devices-approve: ## Approve OpenClaw device (requestId=<id>)
 	docker exec $(OPENCLAW_GATEWAY_CONTAINER) openclaw devices approve $(requestId)
 
 openclaw-devices-auto-approve: ## Auto-extract and approve device
-	@$(eval REQUEST_ID := $(shell docker exec $(OPENCLAW_GATEWAY_CONTAINER) openclaw devices list 2>/dev/null | grep -o '"requestId":"[^"]*"' | cut -d'"' -f4))
+	@$(eval REQUEST_ID := $(shell docker exec $(OPENCLAW_GATEWAY_CONTAINER) openclaw devices list 2>/dev/null | awk '/Pending \(1\)/{flag=1; next} /Paired \(/{flag=0} flag && /│/ && !/Request/' | head -1 | awk -F'│' '{print $$2}' | xargs))
 	@if [ -z "$(REQUEST_ID)" ]; then \
 		echo "✓ No pending device pairing requests"; \
 		echo ""; \
@@ -107,6 +107,63 @@ openclaw-devices-auto-approve: ## Auto-extract and approve device
 		docker exec $(OPENCLAW_GATEWAY_CONTAINER) openclaw devices approve $(REQUEST_ID) && \
 		echo "✓ Device approved successfully!"; \
 	fi
+
+openclaw-pair-watch: ## Watch and auto-approve device pairings (run this while setting up browser)
+	@echo "👀 Watching for device pairing requests..."
+	@echo "   Press Ctrl+C to stop"
+	@echo ""
+	@while true; do \
+		REQUEST_ID=$$(docker exec $(OPENCLAW_GATEWAY_CONTAINER) openclaw devices list 2>/dev/null | awk '/Pending \(1\)/{flag=1; next} /Paired \(/{flag=0} flag && /│/ && !/Request/' | head -1 | awk -F'│' '{print $$2}' | xargs); \
+		if [ -n "$$REQUEST_ID" ]; then \
+			echo "🔔 New pairing request detected: $$REQUEST_ID"; \
+			docker exec $(OPENCLAW_GATEWAY_CONTAINER) openclaw devices approve $$REQUEST_ID && \
+			echo "✅ Device approved successfully!" && \
+			echo "" && \
+			echo "🎉 You can now access OpenClaw in your browser!" && \
+			break; \
+		fi; \
+		sleep 2; \
+	done
+
+openclaw-pair-quick: ## Quick setup - shows token and waits for pairing
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "🚀 OpenClaw Quick Pairing Setup"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo ""
+	@echo "📋 STEP 1: Copy this token"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@jq -r '.gateway.auth.token' .openclaw/openclaw.json 2>/dev/null || grep -A 2 '"auth"' .openclaw/openclaw.json | grep '"token"' | sed 's/.*"token": *"\([^"]*\)".*/\1/'
+	@echo ""
+	@echo "📋 STEP 2: Open this URL in your browser"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "http://$(PROJECT_NAME).openclaw.localhost"
+	@echo ""
+	@echo "📋 STEP 3: In the browser"
+	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+	@echo "  1. Click the Settings (⚙️) icon"
+	@echo "  2. Paste the token in 'Gateway Token' field"
+	@echo "  3. Click 'Save' or press Enter"
+	@echo ""
+	@echo "👀 Waiting for pairing request..."
+	@echo "   (This will auto-approve when you save the token)"
+	@echo ""
+	@while true; do \
+		REQUEST_ID=$$(docker exec $(OPENCLAW_GATEWAY_CONTAINER) openclaw devices list 2>/dev/null | awk '/Pending \(1\)/{flag=1; next} /Paired \(/{flag=0} flag && /│/ && !/Request/' | head -1 | awk -F'│' '{print $$2}' | xargs); \
+		if [ -n "$$REQUEST_ID" ]; then \
+			echo "🔔 Pairing request detected!"; \
+			docker exec $(OPENCLAW_GATEWAY_CONTAINER) openclaw devices approve $$REQUEST_ID && \
+			echo "" && \
+			echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" && \
+			echo "✅ SUCCESS! Device paired successfully!" && \
+			echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" && \
+			echo "" && \
+			echo "🎉 Your browser is now connected to OpenClaw!" && \
+			echo "   Refresh the page if you still see errors." && \
+			echo "" && \
+			break; \
+		fi; \
+		sleep 2; \
+	done
 
 openclaw-gateway-token: ## Show gateway auth token for browser login
 	@echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
