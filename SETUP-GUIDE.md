@@ -44,9 +44,12 @@ make openclaw-pair-quick
 # Follow on-screen instructions: copy token → open browser → paste token
 # The command waits and auto-approves the pairing!
 
-# 6. Login to ClawHub
+# 6. Login to ClawHub (3 steps)
+# Step 1: Run login command
 docker exec -it ${PROJECT_NAME}-gateway npx clawhub login
-# It shows a URL → copy the token from URL → paste when prompted
+# Step 2: Copy the token from URL (the part after #token=)
+# Step 3: Run login with token
+docker exec -it ${PROJECT_NAME}-gateway npx clawhub login --token <paste-token-here>
 
 # 7. Install ALL skills (one command!)
 make install-skills         # Installs 16+ skills for all agents
