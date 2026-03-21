@@ -53,7 +53,11 @@ echo "  1. Discord Bot Token (from Discord Developer Portal)"
 echo "  2. Discord Guild (Server) ID"
 echo "  3. Your Discord User ID"
 echo "  4. Owner Channel ID (private planning channel)"
-echo "  5. Team Channel ID (public coordination channel)"
+echo "  5. Team Channel ID (coordination channel)"
+echo "  6. Frontend Channel ID (frontend agent channel)"
+echo "  7. Backend Channel ID (backend agent channel)"
+echo "  8. Tester Channel ID (tester agent channel)"
+echo "  9. QA Channel ID (qa agent channel)"
 echo ""
 echo -e "${YELLOW}💡 Tip: Enable Developer Mode in Discord (User Settings → Advanced → Developer Mode)${NC}"
 echo -e "${YELLOW}   Then right-click on servers/channels/users to copy their IDs.${NC}"
@@ -179,6 +183,74 @@ done
 
 echo ""
 
+# Prompt for Frontend Channel ID
+echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${GREEN}6. Frontend Channel ID${NC}"
+echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+echo "Channel for the frontend agent (e.g., #fe or #frontend)"
+echo ""
+
+while true; do
+    read -p "Enter Frontend Channel ID: " FRONTEND_CHANNEL_ID
+    if validate_discord_id "$FRONTEND_CHANNEL_ID" "Frontend Channel ID"; then
+        break
+    fi
+done
+
+echo ""
+
+# Prompt for Backend Channel ID
+echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${GREEN}7. Backend Channel ID${NC}"
+echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+echo "Channel for the backend agent (e.g., #be or #backend)"
+echo ""
+
+while true; do
+    read -p "Enter Backend Channel ID: " BACKEND_CHANNEL_ID
+    if validate_discord_id "$BACKEND_CHANNEL_ID" "Backend Channel ID"; then
+        break
+    fi
+done
+
+echo ""
+
+# Prompt for Tester Channel ID
+echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${GREEN}8. Tester Channel ID${NC}"
+echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+echo "Channel for the tester agent (e.g., #tt or #tester)"
+echo ""
+
+while true; do
+    read -p "Enter Tester Channel ID: " TESTER_CHANNEL_ID
+    if validate_discord_id "$TESTER_CHANNEL_ID" "Tester Channel ID"; then
+        break
+    fi
+done
+
+echo ""
+
+# Prompt for QA Channel ID
+echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${GREEN}9. QA Channel ID${NC}"
+echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+echo "Channel for the QA agent (e.g., #qa)"
+echo ""
+
+while true; do
+    read -p "Enter QA Channel ID: " QA_CHANNEL_ID
+    if validate_discord_id "$QA_CHANNEL_ID" "QA Channel ID"; then
+        break
+    fi
+done
+
+echo ""
+
 # Generate gateway auth token
 echo -e "${BLUE}🔐 Generating secure gateway authentication token...${NC}"
 GATEWAY_AUTH_TOKEN=$(openssl rand -hex 24 2>/dev/null || head -c 24 /dev/urandom | xxd -p -c 24)
@@ -193,6 +265,10 @@ echo "Guild ID: $GUILD_ID"
 echo "User ID: $USER_ID"
 echo "Owner Channel ID: $OWNER_CHANNEL_ID"
 echo "Team Channel ID: $TEAM_CHANNEL_ID"
+echo "Frontend Channel ID: $FRONTEND_CHANNEL_ID"
+echo "Backend Channel ID: $BACKEND_CHANNEL_ID"
+echo "Tester Channel ID: $TESTER_CHANNEL_ID"
+echo "QA Channel ID: $QA_CHANNEL_ID"
 echo "Gateway Auth Token: ${GATEWAY_AUTH_TOKEN:0:20}...${GATEWAY_AUTH_TOKEN: -10}"
 echo ""
 
@@ -217,6 +293,10 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     sed -i '' "s|<YOUR_DISCORD_USER_ID>|$USER_ID|g" "$CONFIG_FILE"
     sed -i '' "s|<YOUR_OWNER_CHANNEL_ID>|$OWNER_CHANNEL_ID|g" "$CONFIG_FILE"
     sed -i '' "s|<YOUR_TEAM_CHANNEL_ID>|$TEAM_CHANNEL_ID|g" "$CONFIG_FILE"
+    sed -i '' "s|<YOUR_FRONTEND_CHANNEL_ID>|$FRONTEND_CHANNEL_ID|g" "$CONFIG_FILE"
+    sed -i '' "s|<YOUR_BACKEND_CHANNEL_ID>|$BACKEND_CHANNEL_ID|g" "$CONFIG_FILE"
+    sed -i '' "s|<YOUR_TESTER_CHANNEL_ID>|$TESTER_CHANNEL_ID|g" "$CONFIG_FILE"
+    sed -i '' "s|<YOUR_QA_CHANNEL_ID>|$QA_CHANNEL_ID|g" "$CONFIG_FILE"
     sed -i '' "s|<GENERATE_ON_FIRST_START>|$GATEWAY_AUTH_TOKEN|g" "$CONFIG_FILE"
 else
     # Linux
@@ -225,6 +305,10 @@ else
     sed -i "s|<YOUR_DISCORD_USER_ID>|$USER_ID|g" "$CONFIG_FILE"
     sed -i "s|<YOUR_OWNER_CHANNEL_ID>|$OWNER_CHANNEL_ID|g" "$CONFIG_FILE"
     sed -i "s|<YOUR_TEAM_CHANNEL_ID>|$TEAM_CHANNEL_ID|g" "$CONFIG_FILE"
+    sed -i "s|<YOUR_FRONTEND_CHANNEL_ID>|$FRONTEND_CHANNEL_ID|g" "$CONFIG_FILE"
+    sed -i "s|<YOUR_BACKEND_CHANNEL_ID>|$BACKEND_CHANNEL_ID|g" "$CONFIG_FILE"
+    sed -i "s|<YOUR_TESTER_CHANNEL_ID>|$TESTER_CHANNEL_ID|g" "$CONFIG_FILE"
+    sed -i "s|<YOUR_QA_CHANNEL_ID>|$QA_CHANNEL_ID|g" "$CONFIG_FILE"
     sed -i "s|<GENERATE_ON_FIRST_START>|$GATEWAY_AUTH_TOKEN|g" "$CONFIG_FILE"
 fi
 

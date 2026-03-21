@@ -27,6 +27,9 @@
         "workspace": "/home/node/.openclaw/workspace-owner",
         "agentDir": "/home/node/.openclaw/agents/owner/agent",
         "model": "anthropic/claude-opus-4-6",
+        "subagents": {
+          "allowAgents": ["*"]
+        },
         "groupChat": {
           "mentionPatterns": [
             "@owner",
@@ -92,6 +95,14 @@
       }
     ]
   },
+  "tools": {
+    "sessions": {
+      "visibility": "all"
+    },
+    "agentToAgent": {
+      "enabled": true
+    }
+  },
   "bindings": [
     {
       "agentId": "owner",
@@ -119,7 +130,7 @@
         "channel": "discord",
         "peer": {
           "kind": "channel",
-          "id": "<YOUR_TEAM_CHANNEL_ID>"
+          "id": "<YOUR_FRONTEND_CHANNEL_ID>"
         }
       }
     },
@@ -129,17 +140,7 @@
         "channel": "discord",
         "peer": {
           "kind": "channel",
-          "id": "<YOUR_TEAM_CHANNEL_ID>"
-        }
-      }
-    },
-    {
-      "agentId": "qa-lead",
-      "match": {
-        "channel": "discord",
-        "peer": {
-          "kind": "channel",
-          "id": "<YOUR_TEAM_CHANNEL_ID>"
+          "id": "<YOUR_BACKEND_CHANNEL_ID>"
         }
       }
     },
@@ -149,7 +150,17 @@
         "channel": "discord",
         "peer": {
           "kind": "channel",
-          "id": "<YOUR_TEAM_CHANNEL_ID>"
+          "id": "<YOUR_TESTER_CHANNEL_ID>"
+        }
+      }
+    },
+    {
+      "agentId": "qa-lead",
+      "match": {
+        "channel": "discord",
+        "peer": {
+          "kind": "channel",
+          "id": "<YOUR_QA_CHANNEL_ID>"
         }
       }
     }
@@ -179,7 +190,24 @@
               "requireMention": false
             },
             "<YOUR_TEAM_CHANNEL_ID>": {
-              "allow": true
+              "allow": true,
+              "requireMention": false
+            },
+            "<YOUR_FRONTEND_CHANNEL_ID>": {
+              "allow": true,
+              "requireMention": false
+            },
+            "<YOUR_BACKEND_CHANNEL_ID>": {
+              "allow": true,
+              "requireMention": false
+            },
+            "<YOUR_TESTER_CHANNEL_ID>": {
+              "allow": true,
+              "requireMention": false
+            },
+            "<YOUR_QA_CHANNEL_ID>": {
+              "allow": true,
+              "requireMention": false
             }
           }
         }
@@ -199,54 +227,22 @@
   },
   "skills": {
     "entries": {
-      "github-ops": {
-        "enabled": true
-      },
-      "code-review": {
-        "enabled": true
-      },
-      "typescript": {
-        "enabled": true
-      },
-      "react-expert": {
-        "enabled": true
-      },
-      "react-best-practices": {
-        "enabled": true
-      },
-      "react-performance": {
-        "enabled": true
-      },
-      "tailwind-v4-shadcn": {
-        "enabled": true
-      },
-      "lb-zod-skill": {
-        "enabled": true
-      },
-      "sovereign-accessibility-auditor": {
-        "enabled": true
-      },
-      "testing-patterns": {
-        "enabled": true
-      },
-      "nestjs": {
-        "enabled": true
-      },
-      "security-auditor": {
-        "enabled": true
-      },
-      "security-scanner": {
-        "enabled": true
-      },
-      "e2e-testing-patterns": {
-        "enabled": true
-      },
-      "devops": {
-        "enabled": true
-      },
-      "tmux": {
-        "enabled": true
-      }
+      "github-ops": { "enabled": true },
+      "code-review": { "enabled": true },
+      "typescript": { "enabled": true },
+      "react-expert": { "enabled": true },
+      "react-best-practices": { "enabled": true },
+      "react-performance": { "enabled": true },
+      "tailwind-v4-shadcn": { "enabled": true },
+      "lb-zod-skill": { "enabled": true },
+      "sovereign-accessibility-auditor": { "enabled": true },
+      "testing-patterns": { "enabled": true },
+      "nestjs": { "enabled": true },
+      "security-auditor": { "enabled": true },
+      "security-scanner": { "enabled": true },
+      "e2e-testing-patterns": { "enabled": true },
+      "devops": { "enabled": true },
+      "tmux": { "enabled": true }
     }
   }
 }
