@@ -36,8 +36,8 @@ make openclaw-config-setup   # Interactive setup with validation
 make traefik-start          # Once per machine
 make build && make start    # Build and start containers
 
-# 4. Install dependencies
-make dev-install            # Auto-installs pnpm + dependencies
+# 4. Dependencies auto-install on first container start
+# If needed manually: ssh dev@dev-server "cd ~/project && pnpm install"
 
 # 5. Setup browser pairing (one command, auto-approves!)
 make openclaw-pair-quick
@@ -58,7 +58,7 @@ make install-skills         # Installs 16+ skills for all agents
 gh repo create myproject --private --source=. --push
 
 # 9. Test agents in Discord (or Web UI)
-# @frontend, @backend, @qa, @tester - all ready!
+# Type in #general → Owner, #fe → Frontend, #be → Backend, etc.
 ```
 
 **Total time:** ~15-20 minutes (most time is building Docker image)
@@ -155,7 +155,7 @@ The script will:
    - Enable "Message Content Intent" under Privileged Gateway Intents
 2. **Guild ID** - Right-click your Discord server → Copy Server ID
 3. **User ID** - Right-click your username → Copy User ID
-4. **Channel IDs** - Right-click `#owner` and `#team` channels → Copy Channel ID
+4. **Channel IDs** - Right-click each channel (`#general`, `#team`, `#fe`, `#be`, `#tt`, `#qa`) → Copy Channel ID
 
 💡 **Tip:** Enable Developer Mode first: `Discord Settings → Advanced → Developer Mode ✅`
 
@@ -175,8 +175,12 @@ Edit `.openclaw/openclaw.json` and replace placeholders:
 | `<YOUR_DISCORD_BOT_TOKEN>` | Bot authentication token | Discord Developer Portal → Bot → Reset Token |
 | `<YOUR_GUILD_ID>` | Discord server ID | Right-click server → Copy Server ID |
 | `<YOUR_DISCORD_USER_ID>` | Your Discord user ID | Right-click username → Copy User ID |
-| `<YOUR_OWNER_CHANNEL_ID>` | Private planning channel | Right-click #owner → Copy Channel ID |
-| `<YOUR_TEAM_CHANNEL_ID>` | Public coordination channel | Right-click #team → Copy Channel ID |
+| `<YOUR_OWNER_CHANNEL_ID>` | Owner planning channel | Right-click #general → Copy Channel ID |
+| `<YOUR_TEAM_CHANNEL_ID>` | Status board | Right-click #team → Copy Channel ID |
+| `<YOUR_FRONTEND_CHANNEL_ID>` | Frontend agent | Right-click #fe → Copy Channel ID |
+| `<YOUR_BACKEND_CHANNEL_ID>` | Backend agent | Right-click #be → Copy Channel ID |
+| `<YOUR_TESTER_CHANNEL_ID>` | Tester agent | Right-click #tt → Copy Channel ID |
+| `<YOUR_QA_CHANNEL_ID>` | QA agent | Right-click #qa → Copy Channel ID |
 | `<GENERATE_ON_FIRST_START>` | Gateway auth token | Run: `openssl rand -hex 24` |
 
 Then set proper permissions:
@@ -217,13 +221,11 @@ make start          # starts dev-server + openclaw-gateway
 
 ## Step 5: Install dependencies
 
-The template uses pnpm for better monorepo support. Install dependencies:
+Dependencies auto-install on first container start. If needed manually:
 
 ```bash
-make dev-install     # Auto-installs pnpm if needed, then installs dependencies
+ssh dev@dev-server "cd ~/project && pnpm install"
 ```
-
-This automatically installs pnpm (if not present) and installs all dependencies. Run again whenever you add/change dependencies.
 
 ---
 
@@ -454,7 +456,7 @@ The template uses optimized volume mounts for better security and performance:
 **Dev-server has access to:**
 - ✅ `apps/` - Application code
 - ✅ `packages/` - Shared libraries
-- ✅ `package.json`, `package-lock.json` - Workspace config
+- ✅ `package.json`, `pnpm-lock.yaml` - Workspace config
 - ✅ `node_modules/` - Dependencies
 - ❌ `.openclaw/`, `docs/`, `build/`, `.github/` - Not needed for builds
 
@@ -467,7 +469,7 @@ This reduces the attack surface and file watching overhead while keeping full fu
 ### `pnpm test` / `pnpm run build` fails with binary errors
 
 ```bash
-make dev-install     # Reinstall dependencies (auto-installs pnpm if needed)
+ssh dev@dev-server "cd ~/project && pnpm install"   # Reinstall dependencies
 ```
 
 ### Gateway restart-looping
@@ -482,9 +484,13 @@ Common fixes:
 - Discord warnings → set `"channels": {}` if not using Discord
 - Configuration errors → run `make openclaw-config-setup` to regenerate config
 
-### `make dev-install` fails with "No such file or directory"
+### Dependencies install fails
 
-The command runs as root by default. Fixed in Makefile to use `-u dev` and absolute path `/home/dev/projects`.
+If auto-install didn't run on container start, install manually:
+
+```bash
+ssh dev@dev-server "cd ~/project && pnpm install"
+```
 
 ### `git commit` "please tell me who you are"
 
@@ -581,21 +587,21 @@ This project uses **5 specialized AI agents** that work together:
 
 ### Channel Setup
 
-**Simplified (One Channel):**
+**Per-Agent Channel Routing:**
 
-All agents coordinate in **ONE Discord channel**:
+Each agent has its own dedicated Discord channel. No @mention needed — messages in a channel route directly to that agent.
 
 ```
 Your Server
-└── #team        ← All 5 agents work here
+📁 Agents (category)
+  #general    → Owner (planning, no mention needed)
+  #team       → Owner (status board)
+📁 Team (category)
+  #fe         → Frontend agent
+  #be         → Backend agent
+  #tt         → Tester agent
+  #qa         → QA Lead agent
 ```
-
-- **Owner responds by default** (no @mention needed)
-- **Sub-agents respond when @mentioned**:
-  - `@frontend` or `@fe` → Frontend agent
-  - `@backend` or `@be` → Backend agent
-  - `@qa` or `@qa-lead` → QA Lead agent
-  - `@tester` or `@test` → Tester agent
 
 ### Agent Configuration
 
@@ -627,27 +633,27 @@ Each agent has:
 
 ### Testing Agents
 
-In your **#team** channel:
+Test each channel — messages route directly to that agent (no @mention needed):
 
 ```
-Test 1: Owner (default, no @mention)
+Test 1: Type in #general → Owner responds
 You: Hello
 Owner: Hello! Ready to coordinate the team.
 
-Test 2: Frontend
-You: @frontend what can you do?
+Test 2: Type in #fe → Frontend responds
+You: What can you do?
 Frontend: I specialize in React/TypeScript UI development...
 
-Test 3: Backend
-You: @backend what are your skills?
+Test 3: Type in #be → Backend responds
+You: What are your skills?
 Backend: I handle NestJS API development...
 
-Test 4: QA Lead
-You: @qa hello
+Test 4: Type in #qa → QA Lead responds
+You: Hello
 QA: I perform code reviews and security audits...
 
-Test 5: Tester
-You: @tester hi
+Test 5: Type in #tt → Tester responds
+You: Hi
 Tester: I run tests and E2E automation...
 ```
 
