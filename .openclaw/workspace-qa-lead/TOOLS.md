@@ -12,15 +12,15 @@
 
 ## Review Checklist
 1. TypeScript strict — no `any`, no `@ts-ignore`
-2. Security — no hardcoded secrets, no XSS, no SQL injection
+2. Security — no hardcoded secrets, no injection vulnerabilities
 3. Tests — new code has corresponding tests
 4. Naming — clear, consistent, descriptive
 5. Error handling — graceful failures, meaningful messages
 6. Performance — no N+1 queries, no unnecessary re-renders
 7. Accessibility — semantic HTML, ARIA where needed (frontend)
-8. No console.log in production code
+8. No debug logging in production code
 9. No duplicate code that should be abstracted
-10. API endpoints have Swagger docs (backend)
+10. API endpoints have documentation (if applicable)
 11. PR size is reasonable (<400 lines preferred)
 12. CI passes
 

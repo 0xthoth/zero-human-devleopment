@@ -9,18 +9,27 @@
 - **No force-push to any shared branch** without explicit human approval
 - This applies to ALL agents including @owner
 
-## Project
-- **Monorepo:** /home/node/project
-- **Frontend:** apps/web — React 18+, TypeScript strict, Vite, Vitest, Playwright
-- **Backend:** apps/api — NestJS, TypeScript, Jest, Supertest, PostgreSQL
-- **Shared packages:** packages/* — shared TypeScript libraries (types, utils, validators)
-- **CI:** GitHub Actions at .github/workflows/ci.yml
-- **Package manager:** pnpm (with workspaces)
+## Project Discovery
+On first task, every agent should:
+1. Read the project's `README.md` and root `package.json`
+2. Explore directory structure to understand the layout
+3. Identify frontend app, backend app, shared packages, and CI config
+4. Discover the package manager from lockfiles (package-lock.json → npm, pnpm-lock.yaml → pnpm, yarn.lock → yarn)
+5. Read each app's `package.json` for available scripts
+
+**Do not assume any specific framework, database, or tooling.** Discover it from the project.
+
+## Project Layout
+- **Project root:** /home/node/project
+- **Frontend app:** Discover from project structure
+- **Backend app:** Discover from project structure
+- **Shared packages:** Discover from project structure (e.g., `packages/*`, `libs/*`)
+- **CI:** Check `.github/workflows/` or equivalent
 
 ## Infrastructure
-- **Dev-server:** Ubuntu container with Node.js 22, git, gh CLI, pnpm, code-server
+- **Dev-server:** Ubuntu container with Node.js, git, gh CLI
   - SSH: `ssh dev@dev-server` (key auth, auto-configured)
-  - Run commands via: `ssh dev@dev-server "cd ~/project/apps/web && pnpm test -- --run"`
+  - Discover scripts: `ssh dev@dev-server "cd ~/project && cat package.json"`
   - code-server: `http://<project>.code.localhost` (browser IDE for human)
 - **OpenClaw gateway:** Agent runtime at `http://<project>.openclaw.localhost`
 - **Traefik:** Central reverse proxy — auto-discovers services via Docker labels
@@ -30,8 +39,8 @@
 |-------|------|-------|---------|
 | @owner | Commander | Opus 4.6 | #general + #team |
 | @qa | Quality Gatekeeper | Sonnet 4.5 | #qa |
-| @frontend | React TS Developer | Sonnet 4.5 | #fe |
-| @backend | NestJS Developer | Sonnet 4.5 | #be |
+| @frontend | Frontend Developer | Sonnet 4.5 | #fe |
+| @backend | Backend Developer | Sonnet 4.5 | #be |
 | @tester | QA Engineer | Sonnet 4.5 | #tt |
 
 All agents use `requireMention: false` — they respond to ALL messages in their dedicated channel.
@@ -86,16 +95,15 @@ Human requests feature in #general
 3. Security issue → stop all work, alert human
 4. CI breaks on main → top priority for all
 
-## Shared Packages (`packages/`)
+## Shared Packages
 - For code shared between frontend and backend (types, validators, utils).
-- Each package has its own `package.json` with name `@0xthoth/<name>`.
-- Apps import via: `import { ... } from '@0xthoth/<name>'`
+- Follow the existing naming convention in the project.
 - **Who creates packages:** @owner decides when to create one, assigns @backend or @frontend.
 - **Who can edit:** Both @frontend and @backend can edit packages they depend on.
 
 ## Boundaries
-- @frontend: `apps/web/` + `packages/*` (shared code they consume)
-- @backend: `apps/api/` + `packages/*` (shared code they consume)
+- @frontend: frontend app + shared packages they consume
+- @backend: backend app + shared packages they consume
 - @tester: reads all code, writes tests in both apps + packages, maintains CI
 - @qa: reads all code, reviews PRs, never merges
 - @owner: orchestrates, merges, manages issues — never writes feature code

@@ -2,45 +2,33 @@
 
 > Also read: ../shared/TOOLS-COMMON.md for shared tools (gh CLI, git, skills, self-improvement)
 
-## Test Frameworks
-| Type | Tool | Location |
-|------|------|----------|
-| Unit (FE) | Vitest | `apps/web/**/*.test.tsx` |
-| Unit (BE) | Jest | `apps/api/**/*.spec.ts` |
-| E2E (FE) | Playwright | `apps/web/e2e/` |
-| E2E (BE) | Supertest | `apps/api/test/*.e2e-spec.ts` |
+## Project Discovery
+On first task, discover the testing setup:
+```bash
+ssh dev@dev-server "cd ~/project && cat package.json"
+# Find test files to understand patterns
+ssh dev@dev-server "find ~/project -name '*.test.*' -o -name '*.spec.*' | head -20"
+# Check CI config
+ssh dev@dev-server "cat ~/project/.github/workflows/ci.yml 2>/dev/null"
+```
+
+Read each app's `package.json` to find test scripts and frameworks.
 
 ## Commands via Dev-Server SSH
-Run all tests inside the dev-server (isolated env with Node.js, npm, git).
+Run all tests inside the dev-server (isolated env with Node.js, git).
 
 **IMPORTANT: Use tmux for all commands so the human can track your activity!**
 
 ```bash
-# Frontend tests in tmux session: agent-tester
-ssh dev@dev-server "tmux send-keys -t agent-tester 'cd ~/project/apps/web && npm test -- --run' Enter"
-ssh dev@dev-server "tmux send-keys -t agent-tester 'cd ~/project/apps/web && npm test -- --run --coverage' Enter"
-ssh dev@dev-server "tmux send-keys -t agent-tester 'cd ~/project/apps/web && npx playwright test' Enter"
+# Discover test scripts first
+ssh dev@dev-server "tmux send-keys -t agent-tester 'cd ~/project/<app> && cat package.json | grep -A 20 scripts' Enter"
 
-# Backend tests in tmux session: agent-tester
-ssh dev@dev-server "tmux send-keys -t agent-tester 'cd ~/project/apps/api && npm test' Enter"
-ssh dev@dev-server "tmux send-keys -t agent-tester 'cd ~/project/apps/api && npm run test:e2e' Enter"
-ssh dev@dev-server "tmux send-keys -t agent-tester 'cd ~/project/apps/api && npm run test:cov' Enter"
+# Then run discovered test commands, e.g.:
+ssh dev@dev-server "tmux send-keys -t agent-tester 'cd ~/project/<app> && npm test' Enter"
+ssh dev@dev-server "tmux send-keys -t agent-tester 'cd ~/project/<app> && npm run test:coverage' Enter"
 ```
 
 **Why tmux?** The human can watch your work in real-time: `make tmux-watch agent=tester`
-
-## Commands (local)
-```bash
-# Frontend (from apps/web/)
-npm test -- --run              # Unit tests
-npm test -- --run --coverage   # With coverage
-npx playwright test            # E2E
-
-# Backend (from apps/api/)
-npm test                       # Unit tests
-npm run test:e2e               # E2E
-npm run test:cov               # Coverage
-```
 
 ## CI Monitoring
 ```bash
@@ -66,14 +54,4 @@ gh pr checks <number>          # PR CI status
 
 ### Evidence
 - Error: `...`
-```
-
-## Playwright Template
-```typescript
-import { test, expect } from '@playwright/test'
-
-test('feature works', async ({ page }) => {
-  await page.goto('/')
-  await expect(page).toHaveTitle(/.../)
-})
 ```

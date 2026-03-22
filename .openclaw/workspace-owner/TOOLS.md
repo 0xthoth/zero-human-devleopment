@@ -16,9 +16,9 @@
 ## Infrastructure Management
 - **Dev-server SSH:** `ssh dev@dev-server` (key auth, no password)
 - **Dev-server project:** `/home/dev/project`
+- **Discover scripts:** `ssh dev@dev-server "cd ~/project && cat package.json"`
 - **code-server (human IDE):** http://localhost:8080
 - **OpenClaw web UI:** http://localhost:18789
-- **Caddy (optional):** `docker compose -f docker-compose-caddy.yml up -d`
 - **Restart gateway:** `openclaw gateway restart`
 
 ## Status Tracking Template

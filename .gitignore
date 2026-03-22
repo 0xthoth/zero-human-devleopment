@@ -1,3 +1,12 @@
+# Project ignores
+node_modules
+dist
+.env
+*.local
+coverage
+.turbo
+
+# Template ignores (infra, OpenClaw, Docker)
 node_modules/
 dist/
 *.log
@@ -76,3 +85,4 @@ apps/*/package-lock.json
 
 # npm lockfile (project uses pnpm)
 package-lock.json
+.openclaw/subagents/

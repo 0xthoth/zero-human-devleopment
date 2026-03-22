@@ -2,129 +2,57 @@
 
 > Also read: ../shared/TOOLS-COMMON.md for shared tools (gh CLI, git, skills, self-improvement)
 
-## Stack
-- **NestJS** with TypeScript strict
-- **PostgreSQL** database
-- **Jest** + **Supertest** for tests
-- **Swagger** (@nestjs/swagger) for API docs
-- **Code:** /home/node/project/apps/api
+## Project Discovery
+On first task, discover the stack from the project:
+```bash
+ssh dev@dev-server "cd ~/project && cat package.json"
+ssh dev@dev-server "ls ~/project/apps/ 2>/dev/null || ls ~/project/packages/ 2>/dev/null || ls ~/project/src/ 2>/dev/null"
+```
+
+Read the backend app's `package.json` to find available scripts, dependencies, and dev tools.
 
 ## Commands via Dev-Server SSH
-Run builds and tests inside the dev-server (isolated env with Node.js, npm, git).
+Run builds and tests inside the dev-server (isolated env with Node.js, git).
 
 **IMPORTANT: Use tmux for all commands so the human can track your activity!**
 
 ```bash
-# All commands should run in your dedicated tmux session: agent-backend
-ssh dev@dev-server "tmux send-keys -t agent-backend 'cd ~/project/apps/api && npm run lint' Enter"
-ssh dev@dev-server "tmux send-keys -t agent-backend 'cd ~/project/apps/api && npm test' Enter"
-ssh dev@dev-server "tmux send-keys -t agent-backend 'cd ~/project/apps/api && npm run build' Enter"
-ssh dev@dev-server "tmux send-keys -t agent-backend 'cd ~/project/apps/api && npm run start:dev' Enter"
-ssh dev@dev-server "tmux send-keys -t agent-backend 'cd ~/project/apps/api && npm run test:e2e' Enter"
+# Discover available scripts first
+ssh dev@dev-server "tmux send-keys -t agent-backend 'cd ~/project/<backend-app> && cat package.json | grep -A 20 scripts' Enter"
+
+# Then run discovered commands, e.g.:
+ssh dev@dev-server "tmux send-keys -t agent-backend 'cd ~/project/<backend-app> && npm run lint' Enter"
+ssh dev@dev-server "tmux send-keys -t agent-backend 'cd ~/project/<backend-app> && npm test' Enter"
+ssh dev@dev-server "tmux send-keys -t agent-backend 'cd ~/project/<backend-app> && npm run build' Enter"
 ```
 
 **Why tmux?** The human can watch your work in real-time: `make tmux-watch agent=backend`
 
-## Commands (local, from apps/api/)
-```bash
-npm run start:dev     # Dev server with hot reload
-npm run build         # Production build
-npm run lint          # ESLint
-npm test              # Unit tests
-npm run test:e2e      # E2E tests
-npm run test:cov      # Coverage
-```
-
-## NestJS Module Structure
-```
-src/modules/<name>/
-├── <name>.module.ts
-├── <name>.controller.ts
-├── <name>.controller.spec.ts
-├── <name>.service.ts
-├── <name>.service.spec.ts
-├── <name>.entity.ts
-└── dto/
-    ├── create-<name>.dto.ts
-    └── update-<name>.dto.ts
-```
-
 ## OpenClaw Skills Available
 
-### Tier 1 — Use These Always
+Skills provide specialized knowledge. Available skills may vary per project — check what's installed.
+
+### Core Skills (Use These Always)
 
 | Skill | What It Does | When to Use |
 |-------|-------------|-------------|
-| `agent-nestjs-skills` | NestJS best practices — modules, guards, interceptors, pipes | Every task — follow NestJS architecture patterns |
 | `typescript-lsp` | TypeScript type checking and LSP diagnostics | Before every PR — verify zero type errors |
-| `anti-pattern-czar` | Detect TypeScript error handling anti-patterns | Before PR — catch swallowed errors, `any`, unsafe assertions |
-| `secure-auth-patterns` | JWT, OAuth2, bcrypt, RBAC patterns | When implementing auth, guards, or protected routes |
-| `api-security` | API security — CORS, helmet, rate limiting, input validation | Every new endpoint — check security posture |
-| `postgres-perf` | PostgreSQL optimization — indexing, EXPLAIN, connection pooling | When writing queries, entities, or migrations |
+| `anti-pattern-czar` | Detect TypeScript anti-patterns | Before PR — catch swallowed errors, `any` |
+| `code-security-audit` | OWASP Top 10 vulnerability scanning | Before PR — scan for injection, broken auth |
+| `ggshield-scanner` | Detect hardcoded secrets | Before every commit |
 
-### Tier 2 — Use Per Situation
-
-| Skill | What It Does | When to Use |
-|-------|-------------|-------------|
-| `test-sentinel` | Generate and run Jest + Supertest test suites | When building new modules — auto-generate tests |
-| `backend-patterns` | Backend architecture patterns and API design blueprints | When designing new modules or service layers |
-| `api-dev` | Scaffold, test, document REST APIs | When creating new endpoints with Swagger docs |
-| `database-designer` | Schema design, migration planning, table optimization | When creating new entities or planning migrations |
-| `code-security-audit` | OWASP Top 10 vulnerability scanning | Before PR — scan for SQL injection, broken auth, XSS |
-| `ggshield-scanner` | Detect 500+ types of hardcoded secrets | Before every commit — prevent credential leaks |
-| `lb-zod-skill` | Zod validation library docs | Config validation, env var parsing, runtime schemas |
-
-### Tier 3 — Use When Needed
+### Situational Skills
 
 | Skill | What It Does | When to Use |
 |-------|-------------|-------------|
-| `bug-audit` | Node.js bug hunting — 200+ real-world pitfalls | When debugging memory leaks, event loop issues, async traps |
-| `debug-methodology` | Systematic root-cause debugging | When stuck — prevents shotgun debugging and workaround stacking |
-| `neo-es6-refactor` | Modernize JS/TS to ES6+ | When refactoring legacy code patterns |
-| `agentic-devops` | Docker, process management, log analysis | When working with Docker, health checks, deployment |
-| `secrets-management` | Secrets in CI/CD — Vault, AWS Secrets Manager | When configuring env vars across environments |
-
-## Skill Usage Workflow
-
-### Before Writing Code
-1. Check `agent-nestjs-skills` for correct NestJS patterns
-2. Check `backend-patterns` for architecture decisions
-3. Check `database-designer` if creating new entities
-4. Check `secure-auth-patterns` if implementing auth
-
-### While Writing Code
-5. Use `api-dev` to scaffold endpoints with Swagger docs
-6. Use `test-sentinel` to generate Jest + Supertest tests
-7. Use `postgres-perf` to optimize queries and indexes
-8. Use `lb-zod-skill` for config/env validation
-
-### Before Creating PR
-9. Run `typescript-lsp` — zero type errors
-10. Run `anti-pattern-czar` — no TS anti-patterns
-11. Run `code-security-audit` — OWASP Top 10 clean
-12. Run `ggshield-scanner` — no hardcoded secrets
-13. Run `api-security` — verify endpoint security
-
-## Swagger Decorators
-```typescript
-@ApiTags('auth')
-@ApiOperation({ summary: 'Login' })
-@ApiResponse({ status: 200, description: 'JWT token' })
-@ApiResponse({ status: 401, description: 'Invalid credentials' })
-```
-
-## Test Template
-```typescript
-describe('Service', () => {
-  let service: Service;
-  beforeEach(async () => {
-    const module = await Test.createTestingModule({
-      providers: [Service],
-    }).compile();
-    service = module.get<Service>(Service);
-  });
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
-```
+| `agent-nestjs-skills` | NestJS best practices | If project uses NestJS |
+| `secure-auth-patterns` | JWT, OAuth2, bcrypt, RBAC patterns | When implementing auth |
+| `api-security` | API security — CORS, rate limiting | Every new endpoint |
+| `postgres-perf` | PostgreSQL optimization | If project uses PostgreSQL |
+| `database-designer` | Schema design, migration planning | When creating new entities |
+| `backend-patterns` | Backend architecture patterns | When designing new modules |
+| `api-dev` | Scaffold, test, document REST APIs | When creating new endpoints |
+| `test-sentinel` | Generate test suites | When building new modules |
+| `lb-zod-skill` | Zod validation library docs | Config validation, runtime schemas |
+| `bug-audit` | Node.js bug hunting | When debugging issues |
+| `debug-methodology` | Systematic debugging | When stuck on a problem |

@@ -23,15 +23,15 @@ services:
     volumes:
       - ./data/${DEV_USER:-dev}:/home/${DEV_USER:-dev}
       # Optimized: Only mount directories needed for builds/tests
+      # Shared project code (same files as gateway)
       - ./apps:/home/${DEV_USER:-dev}/project/apps
       - ./packages:/home/${DEV_USER:-dev}/project/packages
       - ./package.json:/home/${DEV_USER:-dev}/project/package.json:ro
       - ./pnpm-workspace.yaml:/home/${DEV_USER:-dev}/project/pnpm-workspace.yaml:ro
-      # package-lock.json removed — project uses pnpm
+      - ./.git:/home/${DEV_USER:-dev}/project/.git
+      - ./.gitignore:/home/${DEV_USER:-dev}/project/.gitignore:ro
+      - ./README.md:/home/${DEV_USER:-dev}/project/README.md:ro
       - ./node_modules:/home/${DEV_USER:-dev}/project/node_modules
-      # Optional: mount additional config files if needed
-      # - ./tsconfig.json:/home/${DEV_USER:-dev}/project/tsconfig.json:ro
-      # - ./.npmrc:/home/${DEV_USER:-dev}/project/.npmrc:ro
     restart: unless-stopped
     networks:
       - internal
