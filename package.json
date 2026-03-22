@@ -4,13 +4,12 @@
   "private": true,
   "packageManager": "pnpm@9.15.4",
   "scripts": {
-    "dev": "pnpm --parallel -r run dev",
-    "dev:web": "pnpm --filter web dev",
-    "dev:api": "pnpm --filter api start:dev",
-    "build": "pnpm -r build",
-    "test": "pnpm -r test",
-    "lint": "pnpm -r lint",
-    "clean": "pnpm -r exec rm -rf node_modules && rm -rf node_modules"
+    "dev:web": "pnpm --filter apps/web dev",
+    "dev:api": "pnpm --filter apps/api dev",
+    "dev": "pnpm run dev:web & pnpm run dev:api",
+    "build": "pnpm -r run build",
+    "test": "pnpm -r run test",
+    "lint": "pnpm -r run lint"
   },
   "devDependencies": {
     "pnpm": "^9.15.4"

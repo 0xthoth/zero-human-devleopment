@@ -36,6 +36,52 @@ See [.openclaw/README.md](.openclaw/README.md) for complete setup instructions.
 | `#tt` | Tester | Testing tasks |
 | `#qa` | QA Lead | Code review |
 
+## 📦 Using with an Existing Project
+
+Have an existing codebase? Use this as the AI team layer:
+
+1. Fork/clone this repo
+2. Replace `apps/` and `packages/` with your code
+3. Update `.openclaw/workspace-*/SOUL.md` to match your tech stack
+4. `make init` → `make start`
+
+### Adjust Docker mounts (if needed)
+
+Add extra root config files to `docker-compose.yml`:
+
+```yaml
+- ./tsconfig.json:/home/dev/project/tsconfig.json:ro
+- ./.eslintrc.js:/home/dev/project/.eslintrc.js:ro
+```
+
+### Package manager
+
+This project uses **pnpm**. To convert from npm/yarn: `pnpm import`
+
+## 🔄 Updating from Template
+
+```bash
+# Setup (once)
+git remote add template https://github.com/0xthoth/zero-human-devleopment.git
+
+# When template has updates
+git fetch template
+git checkout -b chore/template-update
+git checkout template/master -- build/ Makefile docker-compose.yml scripts/ docs/
+git add -A
+git commit -m "chore: update infra from template"
+# Create PR → review → merge
+```
+
+### Safe to update from template
+`build/`, `Makefile`, `scripts/`, `docs/`, `docker-compose.yml`
+
+### Must merge manually
+`docker-compose.yml` (if you changed ports), `.openclaw/workspace-*/SOUL.md`, `.gitignore`, `package.json`
+
+### Never overwrite
+`apps/`, `packages/`, `.env`, `.openclaw/openclaw.json`, `.openclaw/workspace-*/memory/`
+
 ## 📚 Documentation
 
 - [Setup Guide](.openclaw/README.md) — Full setup and architecture
