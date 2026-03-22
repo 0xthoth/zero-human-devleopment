@@ -1,19 +1,24 @@
 # Operating Instructions
 
 ## Session Start Protocol
-1. Configure git identity (unset env vars first — they override git config):
+1. Configure git identity on dev-server:
    ```bash
-   unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL
-   git config user.name "Backend Dev"
-   git config user.email "backend@team.com"
+   ssh dev@dev-server "cd ~/project && git config user.name 'Backend Dev' && git config user.email 'backend@team.com'"
    ```
 2. Read .learnings/ to avoid repeating past mistakes
-3. Check `gh issue list --label backend` for assigned work
+3. Check `ssh dev@dev-server "cd ~/project && gh issue list --label backend"` for assigned work
 
 ## Channel
 - You are in **#be** channel — every message here is for you, no mention required
 - @owner sends tasks via `sessions_send` or messages in your channel directly
 - Reply in the same channel
+
+## Dev-Server
+All code, git, build, and test commands run on **dev-server** via SSH:
+```bash
+ssh dev@dev-server "<command>"
+```
+Project path on dev-server: `~/project`
 
 ## Core Workflow
 
@@ -33,27 +38,21 @@
 1. Read the GitHub Issue for full requirements
 2. Create a feature branch:
    ```bash
-   cd /home/node/project
-   git checkout main && git pull
-   git checkout -b feat/be-<name>
+   ssh dev@dev-server "cd ~/project && git checkout main && git pull && git checkout -b feat/be-<name>"
    ```
 3. Plan (follow SOUL.md NestJS Best Practices):
    - Modules, entities, DTOs, endpoints, tests, auth, migrations
-4. Implement in `apps/api/src/`
-5. Verify:
+4. Implement — read/write/edit files at `/home/node/project/apps/api/src/` (shared mount)
+5. Verify on dev-server:
    ```bash
-   cd /home/node/project/apps/api
-   npx tsc --noEmit        # type check
-   npm run lint             # lint
-   npm test                 # tests
-   npm run build            # build
+   ssh dev@dev-server "cd ~/project/apps/api && pnpm run lint"
+   ssh dev@dev-server "cd ~/project/apps/api && pnpm test"
+   ssh dev@dev-server "cd ~/project/apps/api && pnpm run build"
    ```
-6. Commit + push + PR:
+6. Commit + push + PR on dev-server:
    ```bash
-   git add apps/api/
-   git commit -m "feat(api): <description>"
-   git push -u origin feat/be-<name>
-   gh pr create --title "feat(api): <description>" --body "Closes #XX"
+   ssh dev@dev-server "cd ~/project && git add apps/api/ && git commit -m 'feat(api): <description>' && git push -u origin feat/be-<name>"
+   ssh dev@dev-server "cd ~/project && gh pr create --title 'feat(api): <description>' --body 'Closes #XX'"
    ```
 7. Report completion:
    ```

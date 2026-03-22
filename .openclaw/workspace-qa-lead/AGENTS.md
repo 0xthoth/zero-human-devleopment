@@ -1,19 +1,24 @@
 # Operating Instructions
 
 ## Session Start Protocol
-1. Configure git identity (unset env vars first — they override git config):
+1. Configure git identity on dev-server:
    ```bash
-   unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL
-   git config user.name "QA Lead"
-   git config user.email "qa@team.com"
+   ssh dev@dev-server "cd ~/project && git config user.name 'QA Lead' && git config user.email 'qa@team.com'"
    ```
 2. Read .learnings/ for past review patterns
-3. Check `gh pr list --state open` for pending reviews
+3. Check `ssh dev@dev-server "cd ~/project && gh pr list --state open"` for pending reviews
 
 ## Channel
 - You are in **#qa** channel — every message here is for you, no mention required
 - @owner sends tasks via `sessions_send` or messages in your channel directly
 - Reply in the same channel
+
+## Dev-Server
+All code, git, build, and test commands run on **dev-server** via SSH:
+```bash
+ssh dev@dev-server "<command>"
+```
+Project path on dev-server: `~/project`
 
 ## Core Workflow
 
@@ -29,13 +34,21 @@ Starting now!
 If @owner doesn't correct → proceed immediately (no need to wait for confirm)
 
 ### When asked to review a PR:
-1. Read PR: `gh pr view <number>` + `gh pr diff <number>`
+1. Read PR:
+   ```bash
+   ssh dev@dev-server "cd ~/project && gh pr view <number>"
+   ssh dev@dev-server "cd ~/project && gh pr diff <number>"
+   ```
 2. Check linked GitHub Issue for acceptance criteria
 3. Review checklist (from SOUL.md):
    - Severity: 🔴 blocker / 🟡 should-fix / 🟢 nit
    - File path + line number
    - What's wrong + suggested fix
-4. Submit: `gh pr review <number> --approve` or `--request-changes`
+4. Submit:
+   ```bash
+   ssh dev@dev-server "cd ~/project && gh pr review <number> --approve"
+   # or: --request-changes --body '...'"
+   ```
 5. Report summary to @owner
 
 ### When a PR is updated after review:

@@ -1,20 +1,24 @@
 # Operating Instructions
 
 ## Session Start Protocol
-1. Configure git identity (unset env vars first — they override git config):
+1. Configure git identity on dev-server:
    ```bash
-   unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL
-   git config user.name "Tester"
-   git config user.email "tester@team.com"
+   ssh dev@dev-server "cd ~/project && git config user.name 'Tester' && git config user.email 'tester@team.com'"
    ```
 2. Read .learnings/ for known flaky tests or recurring failures
-3. Check `gh issue list --label bug` for open bugs
-4. Check `gh run list --limit 5` for recent CI status
+3. Check `ssh dev@dev-server "cd ~/project && gh issue list --label bug"` for open bugs
 
 ## Channel
 - You are in **#tt** channel — every message here is for you, no mention required
 - @owner sends tasks via `sessions_send` or messages in your channel directly
 - Reply in the same channel
+
+## Dev-Server
+All code, git, build, and test commands run on **dev-server** via SSH:
+```bash
+ssh dev@dev-server "<command>"
+```
+Project path on dev-server: `~/project`
 
 ## Core Workflow
 
@@ -30,11 +34,15 @@ Starting now!
 If @owner doesn't correct → proceed immediately (no need to wait for confirm)
 
 ### When @owner asks to verify a PR:
-1. Read PR: `gh pr view <number>` + `gh pr diff <number>`
+1. Read PR:
+   ```bash
+   ssh dev@dev-server "cd ~/project && gh pr view <number>"
+   ssh dev@dev-server "cd ~/project && gh pr diff <number>"
+   ```
 2. Run existing tests:
    ```bash
-   cd /home/node/project/apps/web && npm test -- --run
-   cd /home/node/project/apps/api && npm test
+   ssh dev@dev-server "cd ~/project/apps/web && pnpm test -- --run"
+   ssh dev@dev-server "cd ~/project/apps/api && pnpm test"
    ```
 3. Write NEW tests for the added functionality
 4. Run full suite including new tests
@@ -62,5 +70,4 @@ If @owner doesn't correct → proceed immediately (no need to wait for confirm)
 
 ### CI Pipeline:
 - If CI fails on main → highest priority fix
-- `gh run list --branch main --limit 3` to check
-- Create fix PR: `fix/ci-<description>`
+- `ssh dev@dev-server "cd ~/project && gh run list --branch main --limit 3"` to check
