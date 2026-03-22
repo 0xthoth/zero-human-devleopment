@@ -22,16 +22,9 @@ services:
       - "${SSH_PORT:-2222}:22"
     volumes:
       - ./data/${DEV_USER:-dev}:/home/${DEV_USER:-dev}
-      # Optimized: Only mount directories needed for builds/tests
-      # Shared project code (same files as gateway)
-      - ./apps:/home/${DEV_USER:-dev}/project/apps
-      - ./packages:/home/${DEV_USER:-dev}/project/packages
-      - ./package.json:/home/${DEV_USER:-dev}/project/package.json:ro
-      - ./pnpm-workspace.yaml:/home/${DEV_USER:-dev}/project/pnpm-workspace.yaml:ro
-      - ./.git:/home/${DEV_USER:-dev}/project/.git
-      - ./.gitignore:/home/${DEV_USER:-dev}/project/.gitignore:ro
-      - ./README.md:/home/${DEV_USER:-dev}/project/README.md:ro
-      - ./node_modules:/home/${DEV_USER:-dev}/project/node_modules
+      # Mount entire project root — git and files always in sync
+      # Ignored files (.env, .openclaw/secrets, node_modules) won't be pushed via .gitignore
+      - ./:/home/${DEV_USER:-dev}/project
     restart: unless-stopped
     networks:
       - internal
@@ -41,7 +34,18 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.${PROJECT_NAME:-project}-code.rule=Host(`${PROJECT_NAME:-project}.code.localhost`)"
       - "traefik.http.routers.${PROJECT_NAME:-project}-code.entrypoints=web"
+      - "traefik.http.routers.${PROJECT_NAME:-project}-code.service=${PROJECT_NAME:-project}-code"
       - "traefik.http.services.${PROJECT_NAME:-project}-code.loadbalancer.server.port=8080"
+      # Traefik: Vite dev server (frontend)
+      - "traefik.http.routers.${PROJECT_NAME:-project}-web.rule=Host(`${PROJECT_NAME:-project}.web.localhost`)"
+      - "traefik.http.routers.${PROJECT_NAME:-project}-web.entrypoints=web"
+      - "traefik.http.routers.${PROJECT_NAME:-project}-web.service=${PROJECT_NAME:-project}-web"
+      - "traefik.http.services.${PROJECT_NAME:-project}-web.loadbalancer.server.port=5173"
+      # Traefik: API dev server (backend)
+      - "traefik.http.routers.${PROJECT_NAME:-project}-api.rule=Host(`${PROJECT_NAME:-project}.api.localhost`)"
+      - "traefik.http.routers.${PROJECT_NAME:-project}-api.entrypoints=web"
+      - "traefik.http.routers.${PROJECT_NAME:-project}-api.service=${PROJECT_NAME:-project}-api"
+      - "traefik.http.services.${PROJECT_NAME:-project}-api.loadbalancer.server.port=3000"
 
   openclaw-gateway:
     image: ghcr.io/openclaw/openclaw:latest
