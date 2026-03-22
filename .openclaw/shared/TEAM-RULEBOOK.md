@@ -8,42 +8,55 @@
 - **Backend:** apps/api — NestJS, TypeScript, Jest, Supertest, PostgreSQL
 - **Shared packages:** packages/* — shared TypeScript libraries (types, utils, validators)
 - **CI:** GitHub Actions at .github/workflows/ci.yml
+- **Package manager:** pnpm (with workspaces)
 
 ## Infrastructure
-- **Dev-server:** Ubuntu container with Node.js 22, git, gh CLI, code-server
+- **Dev-server:** Ubuntu container with Node.js 22, git, gh CLI, pnpm, code-server
   - SSH: `ssh dev@dev-server` (key auth, auto-configured)
-  - Run commands via: `ssh dev@dev-server "cd ~/project/apps/web && npm test -- --run"`
+  - Run commands via: `ssh dev@dev-server "cd ~/project/apps/web && pnpm test -- --run"`
   - code-server: `http://<project>.code.localhost` (browser IDE for human)
 - **OpenClaw gateway:** Agent runtime at `http://<project>.openclaw.localhost`
 - **Traefik:** Central reverse proxy — auto-discovers services via Docker labels
 
 ## Team Roster
-| Agent | Role | Model | Trigger |
+| Agent | Role | Model | Channel |
 |-------|------|-------|---------|
-| @owner | Commander | Opus 4.6 | Sees all messages |
-| @qa | Quality Gatekeeper | Sonnet 4.5 | @mention only |
-| @frontend | React TS Developer | Sonnet 4.5 | @mention only |
-| @backend | NestJS Developer | Sonnet 4.5 | @mention only |
-| @tester | QA Engineer | Sonnet 4.5 | @mention only |
+| @owner | Commander | Opus 4.6 | #general + #team |
+| @qa | Quality Gatekeeper | Sonnet 4.5 | #qa |
+| @frontend | React TS Developer | Sonnet 4.5 | #fe |
+| @backend | NestJS Developer | Sonnet 4.5 | #be |
+| @tester | QA Engineer | Sonnet 4.5 | #tt |
+
+All agents use `requireMention: false` — they respond to ALL messages in their dedicated channel.
+
+## Discord Channel Layout
+| Channel | Purpose |
+|---------|---------|
+| `#general` | Human ↔ Owner direct conversation, planning |
+| `#team` | Status board — Owner monitors, agents post updates |
+| `#fe` | Frontend agent's workspace |
+| `#be` | Backend agent's workspace |
+| `#tt` | Tester agent's workspace |
+| `#qa` | QA Lead agent's workspace |
 
 ## Feature Delivery Workflow
 ```
-Human requests feature
+Human requests feature in #general
   → @owner decomposes into GitHub Issues
-  → @owner assigns to @frontend / @backend
+  → @owner posts tasks to agent channels (#fe, #be, etc.)
   → Devs implement on feature branches, create PRs
-  → @tester writes tests, verifies functionality
-  → @qa reviews code quality, security, tests
+  → @owner asks @tester in #tt to verify
+  → @owner asks @qa in #qa to review
   → @owner merges after approval + tests passing
-  → @owner notifies human
+  → @owner notifies human in #general
 ```
 
 ## Communication Rules
-1. @owner sees all messages — only agent without requireMention.
-2. All other agents respond ONLY when @mentioned.
-3. Agent-to-agent ping-pong limit: **0** (no infinite loops).
-4. Always report completion to @owner with PR/issue links.
-5. If blocked, say exactly what's needed and who can help.
+1. Each agent monitors its own channel — no @mention needed within a channel.
+2. To assign work to an agent, post in their channel (or use sessions_send for cross-agent communication).
+3. Always report completion to @owner with PR/issue links.
+4. If blocked, say exactly what's needed and who can help.
+5. Agent-to-agent communication is enabled via agentToAgent.
 
 ## PR Requirements
 - Linked to a GitHub Issue

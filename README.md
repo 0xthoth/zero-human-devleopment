@@ -14,7 +14,7 @@ A complete OpenClaw configuration featuring 5 specialized AI agents working toge
 
 ## ✨ Features
 
-- 🤝 **Hybrid Channel Routing** - Group coordination + dedicated 1-on-1 channels
+- 🎯 **Per-Agent Channel Routing** - Each agent has its own Discord channel (#fe, #be, #tt, #qa), no @mention needed
 - 🛠️ **Smart Skill Distribution** - Shared + agent-specific skills
 - 🎭 **Git Identity** - Each agent commits with unique identity
 - 🧪 **Playwright CI/CD** - Full E2E testing integration
@@ -25,12 +25,24 @@ A complete OpenClaw configuration featuring 5 specialized AI agents working toge
 
 See [.openclaw/README.md](.openclaw/README.md) for complete setup instructions.
 
+## 📋 Discord Channels
+
+| Channel | Agent | Purpose |
+|---------|-------|---------|
+| `#general` | Owner | Human ↔ Owner planning |
+| `#team` | Owner (monitors) | Status board |
+| `#fe` | Frontend | Frontend tasks |
+| `#be` | Backend | Backend tasks |
+| `#tt` | Tester | Testing tasks |
+| `#qa` | QA Lead | Code review |
+
 ## 📚 Documentation
 
-- [Setup Guide](.openclaw/README.md)
-- [Quick Reference](.openclaw/CONFIG.md)
-- [Architecture Diagrams](.openclaw/ARCHITECTURE.md)
-- [Agent Template](.openclaw/workspace-owner/AGENT-TEMPLATE.md)
+- [Setup Guide](.openclaw/README.md) — Full setup and architecture
+- [Discord Setup](docs/DISCORD-SETUP.md) — Bot and channel configuration
+- [Troubleshooting](docs/TROUBLESHOOTING.md) — Common issues and fixes
+- [Multi-Project Setup](docs/MULTI-PROJECT.md) — Running multiple projects
+- [Agent Template](.openclaw/workspace-owner/AGENT-TEMPLATE.md) — Adding new agents
 
 ## 📜 License
 

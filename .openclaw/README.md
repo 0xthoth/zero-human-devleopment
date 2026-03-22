@@ -9,12 +9,10 @@ A production-ready multi-agent system for collaborative software development usi
 ## Features
 
 - **5 Specialized Agents:** Owner (coordinator), Frontend, Backend, QA Lead, Tester
-- **Two-Channel Strategy:** #owner (private) + #team (public coordination)
+- **Per-Agent Channel Routing:** Each agent has its own Discord channel for focused work
 - **Skill Distribution:** Shared skills (all agents) + agent-specific skills
 - **Git Identity:** Each agent commits with unique identity
 - **CI/CD Integration:** Playwright E2E testing with full CI/CD workflow
-- **Complete Activity Tracking:** Monitor both agent thinking (Gateway) and execution (Dev-Server) 🔍
-  - See [COMPLETE-TRACKING-GUIDE.md](COMPLETE-TRACKING-GUIDE.md) for full details
 - **Learning System:** Agents learn from past mistakes (.learnings/)
 
 ---
@@ -69,20 +67,23 @@ apt install tmux   # Ubuntu/Debian
 **For Docker mode:** Skip these installs and follow `/SETUP-GUIDE.md` instead.
 
 ### 2. Configure Discord Bot
-1. Create Discord server with **TWO channels**:
-   - `#owner` - Private planning (human ↔ owner)
-   - `#team` - Public coordination (all agents)
+1. Create Discord server with these channels:
+   - `#general` - Human ↔ Owner (owner's primary channel)
+   - `#team` - Status board (owner monitors for coordination)
+   - `#fe` - Frontend agent's dedicated channel
+   - `#be` - Backend agent's dedicated channel
+   - `#tt` - Tester agent's dedicated channel
+   - `#qa` - QA Lead agent's dedicated channel
 2. Create Discord bot at https://discord.com/developers
    - Enable "Message Content Intent" in Bot settings
    - Get bot token
 3. Get your Discord IDs:
    - Guild ID (Server ID): Right-click server → Copy ID
-   - Owner Channel ID: Right-click #owner → Copy ID
-   - Team Channel ID: Right-click #team → Copy ID
+   - Channel IDs for each channel above
    - Your User ID: Right-click your name → Copy ID
 4. Update IDs in `openclaw.json.template`
 
-See `docs/TEMPLATE-SETUP-GUIDE.md` for detailed setup instructions.
+See `docs/DISCORD-SETUP.md` for detailed setup instructions.
 
 ### 3. Setup Configuration
 ```bash
@@ -92,8 +93,7 @@ cp .openclaw/openclaw.json.template .openclaw/openclaw.json
 # Edit openclaw.json and replace placeholders:
 # - <YOUR_DISCORD_BOT_TOKEN>       → Your bot token
 # - <YOUR_GUILD_ID>                → Your Discord server ID
-# - <YOUR_OWNER_CHANNEL_ID>        → Your #owner channel ID (private)
-# - <YOUR_TEAM_CHANNEL_ID>         → Your #team channel ID (public)
+# - Channel IDs for #general, #team, #fe, #be, #tt, #qa
 # - <YOUR_DISCORD_USER_ID>         → Your Discord user ID
 ```
 
@@ -118,18 +118,15 @@ make gateway-restart
 │                              USER (Discord)                                 │
 └─────────────────────────────────────────────────────────────────────────────┘
                                       │
-                    ┌─────────────────┴─────────────────┐
-                    │                                   │
-            ┌───────▼────────┐                 ┌────────▼────────┐
-            │ #owner Channel │                 │  #team Channel  │
-            │ (1483684870..) │                 │  (1483721..)    │
-            │                │                 │                 │
-            │ Private        │                 │ Public          │
-            │ Human ↔ Owner  │                 │ Coordination    │
-            │ No @mention    │                 │ All agents      │
-            └────────────────┘                 └────────┬────────┘
-                    │                                   │
-                    └─────────────────┬─────────────────┘
+        ┌──────────┬──────────┬───────┴───────┬──────────┬──────────┐
+        │          │          │               │          │          │
+   ┌────▼────┐ ┌───▼───┐ ┌───▼───┐     ┌─────▼───┐ ┌───▼───┐ ┌───▼───┐
+   │#general │ │ #team │ │  #fe  │     │   #be   │ │  #tt  │ │  #qa  │
+   │ Owner   │ │Status │ │Front  │     │  Back   │ │Tester │ │  QA   │
+   │ primary │ │ board │ │  end  │     │  end    │ │       │ │ Lead  │
+   └────┬────┘ └───┬───┘ └───┬───┘     └────┬────┘ └───┬───┘ └───┬───┘
+        │          │          │               │          │          │
+        └──────────┴──────────┴───────┬───────┴──────────┴──────────┘
                                       │
         ┌─────────────────────────────┴─────────────────────────────┐
         │                    OpenClaw Gateway                        │
@@ -139,9 +136,13 @@ make gateway-restart
     ┌─────────────────────────────────┼─────────────────────────────────┐
     │                                 │                                 │
     │                        Agent Resolution                          │
-    │  #owner: requireMention=false → Owner always responds            │
-    │  #team: requireMention=true → Owner (default) + @mentioned agents│
-    │  Auto-reply routing: Reply in channel where msg received         │
+    │  Per-Agent Channel Routing:                                      │
+    │  #general → Owner (requireMention: false)                        │
+    │  #team   → Owner monitors (status board)                         │
+    │  #fe     → Frontend (requireMention: false)                      │
+    │  #be     → Backend (requireMention: false)                       │
+    │  #tt     → Tester (requireMention: false)                        │
+    │  #qa     → QA Lead (requireMention: false)                       │
     │                                                                  │
     └─────────────────────────────────┬─────────────────────────────────┘
                                       │
@@ -155,7 +156,7 @@ make gateway-restart
 │ OWNER          │  │ FRONTEND    │  │ BACKEND    │  │ QA LEAD / TESTER │
 │                │  │             │  │            │  │                  │
 │ Opus 4.6       │  │ Sonnet 4.5  │  │ Sonnet 4.5 │  │ Sonnet 4.5       │
-│ Default: true  │  │             │  │            │  │                  │
+│ #general+#team │  │ #fe         │  │ #be        │  │ #qa / #tt        │
 └───────┬────────┘  └──────┬──────┘  └──┬─────────┘  └─────────┬────────┘
         │                  │             │                      │
         └──────────────────┴─────────────┴──────────────────────┘
@@ -211,101 +212,53 @@ make gateway-restart
 
 ## Channel Routing
 
-### Two-Channel Strategy
+### Per-Agent Channel Routing
 
-**#owner (Private Planning)**
-- Human ↔ Owner direct conversation
-- No @mention needed
-- Private planning and strategy
+Each agent has its own dedicated Discord channel. All channels use `requireMention: false` — agents respond to ALL messages in their channel.
 
-**#team (Public Coordination)**
-- Owner sees ALL messages (default agent)
-- Sub-agents respond when @mentioned:
-  - `@frontend` or `@fe` - Frontend agent
-  - `@backend` or `@be` - Backend agent
-  - `@qa` or `@qa-lead` - QA Lead agent
-  - `@tester` or `@test` - Tester agent
-- Full transparency of team workflow
+| Channel | Agent | Purpose |
+|---------|-------|---------|
+| `#general` | Owner | Human ↔ Owner direct conversation, planning |
+| `#team` | Owner (monitors) | Status board, coordination visibility |
+| `#fe` | Frontend | Frontend development tasks |
+| `#be` | Backend | Backend development tasks |
+| `#tt` | Tester | Testing and CI/CD tasks |
+| `#qa` | QA Lead | Code review and quality tasks |
 
-**Why two channels?**
-- ✅ Separate private planning from public coordination
-- ✅ Owner responds automatically in both channels
-- ✅ Sub-agents only in #team (cleaner separation)
-- ✅ Full visibility without noise
-
-See `docs/TWO-CHANNEL-SETUP.md` for complete details.
+**Why per-agent channels?**
+- ✅ Each agent has focused context in its own channel
+- ✅ No @mention routing needed — agents respond to everything in their channel
+- ✅ Clear separation of concerns
+- ✅ Easy to track each agent's work history
+- ✅ Owner monitors #team for cross-agent coordination
 
 ## Workflow Example
 
 ```
-#owner (Private):
+#general:
   Human: "I need a login feature"
   Owner: "Let me create the issues..."
 
-#team (Public):
-  Owner: "@frontend implement login form #123"
-  Owner: "@backend add auth API #124"
-    ↓
-  Frontend: "✅ Working on #123"
-  Backend: "✅ Working on #124"
-    ↓
-  Frontend: "@owner @qa PR #45 ready"
-    ↓
-  QA: "✅ Approved PR #45"
-    ↓
-  Owner: "@tester run E2E tests"
+#fe:
+  Owner: "Implement login form #123"
+  Frontend: "✅ Working on it..."
+  Frontend: "PR #45 ready for review"
+
+#be:
+  Owner: "Add auth API #124"
+  Backend: "✅ Working on it..."
+  Backend: "PR #46 ready"
+
+#qa:
+  Owner: "Review PR #45 and #46"
+  QA: "✅ Approved both PRs"
+
+#tt:
+  Owner: "Run E2E tests for login"
   Tester: "✅ 25/25 tests passed"
-    ↓
-  Owner: "Merged! Login feature complete."
-```
 
-### Data Flows
-
-**Testing Flow (with Playwright CI/CD)**
-```
-Tester receives @mention
-    ↓
-Run local tests: npx playwright test
-    ↓
-Monitor CI: gh run list
-    ↓
-Capture artifacts: screenshots, videos, traces
-    ↓
-Debug failures: npx playwright show-trace
-    ↓
-Report in #team:
-    🎭 Playwright E2E Report
-    ✅ Passed: X
-    ❌ Failed: Y
-    Screenshots & traces attached
-```
-
-**Code Review Flow**
-```
-PR created by Frontend/Backend
-    ↓
-Owner @mentions QA Lead
-    ↓
-QA reviews code (code-review skill)
-    ↓
-Submit GitHub review
-    ↓
-Report summary in #team
-    ↓
-Owner merges if approved
-```
-
-**Git Flow**
-```
-Agent Session Starts
-    ↓
-git config user.name "<Agent> Agent"
-git config user.email "<agent>@team.com"
-    ↓
-Agent creates commits
-Author: Frontend Dev Agent <frontend@team.com>
-    ↓
-GitHub shows correct agent attribution
+#general:
+  Owner: "Login feature shipped ✅"
 ```
 
 ---
@@ -346,8 +299,9 @@ make help                   # Show all Makefile commands
 1. Read `workspace-owner/AGENT-TEMPLATE.md`
 2. Create new workspace directory
 3. Add agent to `openclaw.json`
-4. Add Discord channel binding
-5. Restart gateway
+4. Create a dedicated Discord channel for the agent
+5. Add channel binding in config
+6. Restart gateway
 
 ### Adding Skills
 ```bash
@@ -365,146 +319,43 @@ Edit `.openclaw/workspace-*/AGENTS.md` for each agent's specific workflow.
 
 ```
 .openclaw/
-├── CONFIG.md                    # Quick reference
-├── ARCHITECTURE.md              # System diagrams
 ├── README.md                    # This file
 ├── openclaw.json.template       # Configuration template
-│
-├── docs/                        # Implementation guides
-│   ├── TMUX-IMPLEMENTATION.md   # Tmux monitoring ✅
-│   ├── TWO-CHANNEL-SETUP.md     # Channel strategy
-│   └── TEMPLATE-SETUP-GUIDE.md  # Template setup
-│
-├── archive/                     # Historical docs
-│   ├── IMPLEMENTATION-SUMMARY.md
-│   └── TEMPLATE-UPDATED.md
 │
 ├── skills/                      # Shared skills (all agents)
 │   ├── typescript/
 │   ├── github-ops/
 │   ├── lb-zod-skill/
-│   └── tmux/                    # ✅ Enabled
+│   └── tmux/
+│
+├── shared/                      # Shared docs for all agents
+│   ├── TEAM-RULEBOOK.md
+│   ├── TOOLS-COMMON.md
+│   └── USER.md
+│
+├── agents/                      # Runtime agent directories
+│   ├── owner/agent/
+│   ├── frontend/agent/
+│   ├── backend/agent/
+│   ├── qa-lead/agent/
+│   ├── tester/agent/
+│   └── main/agent/
 │
 ├── workspace-owner/
 │   ├── AGENT-TEMPLATE.md        # Template for new agents
-│   ├── AGENTS.md                # Workflows (with tmux)
+│   ├── AGENTS.md                # Workflows
 │   ├── IDENTITY.md, SOUL.md     # Agent personality
 │   └── skills/                  # Owner-specific skills
 │
-├── workspace-frontend/          # Tmux workflows ✅
-├── workspace-backend/           # Tmux workflows ✅
+├── workspace-frontend/
+├── workspace-backend/
 ├── workspace-qa-lead/
-└── workspace-tester/            # Tmux workflows ✅
-```
-
-## CI/CD Integration
-
-### Playwright E2E Testing (Tester Agent)
-```bash
-# Run E2E tests
-npx playwright test
-
-# Monitor CI
-gh run list --workflow="E2E Tests"
-
-# Debug with traces
-npx playwright show-trace trace.zip
-```
-
-### GitHub Actions
-Add workflows in `.github/workflows/`:
-- `ci.yml` - Run tests on PR
-- `e2e.yml` - Playwright E2E tests
-
-## Monitoring
-
-### Complete Activity Tracking 🔍
-
-Track agents at **two levels** for complete visibility:
-
-1. **Gateway (Agent Brain 🧠)** - What agents think and decide
-2. **Dev-Server (Execution ⚙️)** - What commands actually run
-
-**Quick commands:**
-```bash
-# Gateway tracking - see agent thinking
-make agent-sessions                    # List all conversations
-make agent-session-view agent=owner    # View latest session
-
-# Dev-server tracking - see command execution
-make tmux-list                        # List all tmux sessions
-make tmux-watch agent=frontend        # Watch frontend terminal
-
-# Watch BOTH at once (split screen)
-make agent-watch-all agent=backend    # Best for active monitoring
-```
-
-**Full guides:**
-- **[COMPLETE-TRACKING-GUIDE.md](COMPLETE-TRACKING-GUIDE.md)** - Complete guide to both levels
-- **[GATEWAY-TRACKING.md](GATEWAY-TRACKING.md)** - Gateway-level tracking (thinking)
-- **[AGENT-TMUX-TRACKING.md](AGENT-TMUX-TRACKING.md)** - Dev-server tracking (execution)
-
-### Legacy Tmux Sessions (Local Mode)
-
-For local mode installations, use the tmux socket approach:
-
-```bash
-# Setup socket
-SOCKET_DIR="${TMPDIR:-/tmp}/clawdbot-tmux-sockets"
-SOCKET="$SOCKET_DIR/clawdbot.sock"
-
-# List active sessions
-tmux -S "$SOCKET" list-sessions
-
-# Attach to agent's work (watch in real-time)
-tmux -S "$SOCKET" attach -t frontend-dev
-
-# Detach (keeps session running)
-# Press: Ctrl+b then d
-
-# View output without attaching
-tmux -S "$SOCKET" capture-pane -p -J -t frontend-dev:0.0 -S -200
-```
-
-See `docs/TMUX-IMPLEMENTATION.md` for complete guide.
-
-### Logs
-```bash
-# Gateway logs
-make gateway-logs
-
-# Agent-specific logs (if available)
-tail -f .openclaw/logs/<agent>.log
+└── workspace-tester/
 ```
 
 ## Troubleshooting
 
-### Rate Limits
-**ClawHub:** 120 req/min. Wait 1-2 minutes between operations.
-
-### Skills in Wrong Location
-If installed to `skills/skills/<skill>`:
-```bash
-mv skills/skills/<skill> .
-```
-
-### Config Not Applying
-Always restart gateway after config changes:
-```bash
-openclaw gateway restart
-# or: make gateway-restart
-```
-
-### Agent Not Responding
-- Check mention patterns in `openclaw.json`
-- Verify bindings include the channel
-- Check if agent is default (owner only)
-- Verify channel `requireMention` settings
-
-### Tmux Session Not Found
-- Verify tmux skill is installed: `ls .openclaw/skills/tmux`
-- Check if skill is enabled in `openclaw.json`
-- Restart gateway after enabling
+See `docs/TROUBLESHOOTING.md` for common issues and solutions.
 
 ## Contributing
 
@@ -518,31 +369,8 @@ This template is designed to be forked and customized:
 
 MIT License - See LICENSE file
 
-## Documentation
-
-**Everything in one place:**
-- **This file (README.md):** Quick reference, architecture, commands, troubleshooting
-
-**Deep-dive guides:**
-- `docs/TEMPLATE-SETUP-GUIDE.md` - Setting up new project
-- `docs/TMUX-IMPLEMENTATION.md` - Tmux monitoring details
-- `docs/TWO-CHANNEL-SETUP.md` - Channel strategy details
-
-**Templates:**
-- `openclaw.json.template` - New project template
-- `workspace-owner/AGENT-TEMPLATE.md` - New agent template
-
-**Historical reference:**
-- `archive/` - Completed work logs
-
 ## Resources
 
 - [OpenClaw Documentation](https://docs.openclaw.ai)
 - [ClawHub Skills Registry](https://clawhub.ai)
 - [Discord Bot Setup](https://discord.com/developers/applications)
-
-## Support
-
-For issues and questions:
-- OpenClaw: https://github.com/anthropics/openclaw
-- Template Issues: [Your repo issues page]

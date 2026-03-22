@@ -16,12 +16,13 @@
 - `gh run view <id> --log-failed` — failed CI logs
 
 ## Dev-Server (SSH)
-The dev-server is an isolated Ubuntu container with Node.js, npm, git, and gh CLI.
+The dev-server is an isolated Ubuntu container with Node.js, pnpm, git, and gh CLI.
 - SSH: `ssh dev@dev-server` (key auth, no password)
-- Run commands: `ssh dev@dev-server "cd ~/project/apps/web && npm test -- --run"`
+- Run commands: `ssh dev@dev-server "cd ~/project/apps/web && pnpm test -- --run"`
 - Use `~/project` inside dev-server (same code as /home/node/project)
-- **First run:** `ssh dev@dev-server "cd ~/project && npm install"` (installs Linux-native deps)
-- If `npm test` or `npm run build` fails with binary errors, re-run `npm install` inside dev-server
+- **First run:** `ssh dev@dev-server "cd ~/project && pnpm install"` (installs Linux-native deps)
+- If `pnpm test` or `pnpm run build` fails with binary errors, re-run `pnpm install` inside dev-server
+- **Note:** pnpm is available on the dev-server. The project uses pnpm workspaces — always use `pnpm` instead of `npm`.
 
 ## Git Conventions
 - Project repo: /home/node/project
@@ -57,7 +58,7 @@ ssh dev@dev-server "tmux kill-session -t agent-<your-id>"
 ```
 
 ### When to use:
-- ✅ `npm run dev`, `npm test --watch`, builds, long-running processes
+- ✅ `pnpm run dev`, `pnpm test --watch`, builds, long-running processes
 - ❌ Quick one-off commands (use regular ssh exec instead)
 
 ### Naming: `agent-<id>` (e.g. `agent-frontend`, `agent-backend`)

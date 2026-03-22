@@ -18,8 +18,12 @@ data/
 traefik_letsencrypt/
 
 # OpenClaw Runtime Data (exclude, but keep template structure)
-.openclaw/agents/
+.openclaw/agents/*
+!.openclaw/agents/*/
+.openclaw/agents/*/agent/*
+!.openclaw/agents/*/agent/.gitkeep
 .openclaw/sandboxes/
+.openclaw/credentials/
 .openclaw/identity/
 .openclaw/devices/
 .openclaw/logs/
@@ -69,3 +73,6 @@ Thumbs.db
 
 # Per-workspace lockfiles (pnpm uses root pnpm-lock.yaml only)
 apps/*/package-lock.json
+
+# npm lockfile (project uses pnpm)
+package-lock.json

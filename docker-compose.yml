@@ -28,7 +28,7 @@ services:
       - ./package.json:/home/${DEV_USER:-dev}/project/package.json:ro
       - ./pnpm-workspace.yaml:/home/${DEV_USER:-dev}/project/pnpm-workspace.yaml:ro
       - ./pnpm-lock.yaml:/home/${DEV_USER:-dev}/project/pnpm-lock.yaml
-      - ./package-lock.json:/home/${DEV_USER:-dev}/project/package-lock.json
+      # package-lock.json removed — project uses pnpm
       - ./node_modules:/home/${DEV_USER:-dev}/project/node_modules
       # Optional: mount additional config files if needed
       # - ./tsconfig.json:/home/${DEV_USER:-dev}/project/tsconfig.json:ro
@@ -60,7 +60,7 @@ services:
       - ./data/${DEV_USER:-dev}/.openclaw-ssh:/home/node/.ssh
       - ./build/ssh-config:/home/node/.ssh/config:ro
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - GITHUB_TOKEN=${GITHUB_TOKEN}
       - DEV_SERVER_HOST=dev-server
