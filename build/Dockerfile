@@ -19,7 +19,9 @@ RUN mkdir -p /etc/apt/keyrings \
        https://deb.nodesource.com/node_22.x nodistro main" \
        | tee /etc/apt/sources.list.d/nodesource.list \
     && apt-get update && apt-get install -y nodejs \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && corepack enable \
+    && corepack prepare pnpm@9.15.4 --activate
 
 # GitHub CLI
 RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \

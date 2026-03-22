@@ -22,16 +22,9 @@ services:
       - "${SSH_PORT:-2222}:22"
     volumes:
       - ./data/${DEV_USER:-dev}:/home/${DEV_USER:-dev}
-      # Optimized: Only mount directories needed for builds/tests
-      # Shared project code (same files as gateway)
-      - ./apps:/home/${DEV_USER:-dev}/project/apps
-      - ./packages:/home/${DEV_USER:-dev}/project/packages
-      - ./package.json:/home/${DEV_USER:-dev}/project/package.json:ro
-      - ./pnpm-workspace.yaml:/home/${DEV_USER:-dev}/project/pnpm-workspace.yaml:ro
-      - ./.git:/home/${DEV_USER:-dev}/project/.git
-      - ./.gitignore:/home/${DEV_USER:-dev}/project/.gitignore:ro
-      - ./README.md:/home/${DEV_USER:-dev}/project/README.md:ro
-      - ./node_modules:/home/${DEV_USER:-dev}/project/node_modules
+      # Mount entire project root — git and files always in sync
+      # Ignored files (.env, .openclaw/secrets, node_modules) won't be pushed via .gitignore
+      - ./:/home/${DEV_USER:-dev}/project
     restart: unless-stopped
     networks:
       - internal
