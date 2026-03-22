@@ -34,7 +34,18 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.${PROJECT_NAME:-project}-code.rule=Host(`${PROJECT_NAME:-project}.code.localhost`)"
       - "traefik.http.routers.${PROJECT_NAME:-project}-code.entrypoints=web"
+      - "traefik.http.routers.${PROJECT_NAME:-project}-code.service=${PROJECT_NAME:-project}-code"
       - "traefik.http.services.${PROJECT_NAME:-project}-code.loadbalancer.server.port=8080"
+      # Traefik: Vite dev server (frontend)
+      - "traefik.http.routers.${PROJECT_NAME:-project}-web.rule=Host(`${PROJECT_NAME:-project}.web.localhost`)"
+      - "traefik.http.routers.${PROJECT_NAME:-project}-web.entrypoints=web"
+      - "traefik.http.routers.${PROJECT_NAME:-project}-web.service=${PROJECT_NAME:-project}-web"
+      - "traefik.http.services.${PROJECT_NAME:-project}-web.loadbalancer.server.port=5173"
+      # Traefik: API dev server (backend)
+      - "traefik.http.routers.${PROJECT_NAME:-project}-api.rule=Host(`${PROJECT_NAME:-project}.api.localhost`)"
+      - "traefik.http.routers.${PROJECT_NAME:-project}-api.entrypoints=web"
+      - "traefik.http.routers.${PROJECT_NAME:-project}-api.service=${PROJECT_NAME:-project}-api"
+      - "traefik.http.services.${PROJECT_NAME:-project}-api.loadbalancer.server.port=3000"
 
   openclaw-gateway:
     image: ghcr.io/openclaw/openclaw:latest
