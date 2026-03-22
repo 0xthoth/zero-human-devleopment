@@ -52,35 +52,74 @@ if [ ! -f "${HOME_DIR}/.bashrc" ]; then
     cp /etc/skel/.bashrc "${HOME_DIR}/.bashrc"
     cat >> "${HOME_DIR}/.bashrc" << 'TMUX_PROMPT'
 
-# --- Tmux session prompt on login ---
+# --- Tmux session manager on login ---
 if command -v tmux &>/dev/null && [ -z "$TMUX" ] && [ -t 0 ]; then
   SESSIONS=$(tmux list-sessions 2>/dev/null)
+  echo ""
+  echo "🖥️  Tmux Session Manager"
+  echo "========================"
+
   if [ -n "$SESSIONS" ]; then
     echo ""
-    echo "📺 Active tmux sessions:"
-    echo "$SESSIONS"
+    echo "Active sessions:"
+    echo "$SESSIONS" | nl -w2 -s") "
     echo ""
-    read -p "Attach to existing session? (name/Y/n): " REPLY
+    echo "Options:"
+    echo "  [number]  - Attach to session"
+    echo "  [name]    - Create new session with this name"
+    echo "  n         - Skip tmux"
+    echo ""
+    read -p "Choose: " REPLY
+
     case "$REPLY" in
       n|N) ;;
-      y|Y|"") tmux attach ;;
-      *) tmux attach -t "$REPLY" 2>/dev/null || echo "Session not found" ;;
+      [0-9]*)
+        SESS=$(echo "$SESSIONS" | sed -n "${REPLY}p" | cut -d: -f1)
+        if [ -n "$SESS" ]; then
+          tmux attach -t "$SESS"
+        else
+          echo "Invalid number"
+        fi
+        ;;
+      "")
+        tmux attach
+        ;;
+      *)
+        if tmux has-session -t "$REPLY" 2>/dev/null; then
+          tmux attach -t "$REPLY"
+        else
+          echo "Creating session: $REPLY"
+          tmux new-session -s "$REPLY" -c ~/project
+        fi
+        ;;
     esac
   else
     echo ""
-    read -p "🖥️  No tmux sessions. Create one? (Y/n): " REPLY
+    echo "No active sessions."
+    echo ""
+    echo "Options:"
+    echo "  [name]  - Create session (e.g. feat-login, fix-bug)"
+    echo "  Enter   - Create default 'dev' session"
+    echo "  n       - Skip tmux"
+    echo ""
+    read -p "Session name: " REPLY
+
     case "$REPLY" in
       n|N) ;;
-      *)
-        read -p "Session name [dev]: " SESS_NAME
-        SESS_NAME=${SESS_NAME:-dev}
-        tmux new-session -s "$SESS_NAME" -c ~/project
-        ;;
+      "")  tmux new-session -s dev -c ~/project ;;
+      *)   tmux new-session -s "$REPLY" -c ~/project ;;
     esac
   fi
 fi
 TMUX_PROMPT
     chown "${DEV_USER}:${DEV_USER}" "${HOME_DIR}/.bashrc"
+fi
+
+# --- Auto install dependencies on first run ---
+if [ -f "${HOME_DIR}/project/pnpm-workspace.yaml" ] && [ ! -d "${HOME_DIR}/project/node_modules/.pnpm" ]; then
+    echo ">>> First run: installing pnpm dependencies..."
+    su - "${DEV_USER}" -c "cd ~/project && corepack enable 2>/dev/null; pnpm install --no-frozen-lockfile" || true
+    echo ">>> Dependencies installed"
 fi
 
 # --- Create project symlink ---
