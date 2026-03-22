@@ -50,12 +50,15 @@ services:
     restart: unless-stopped
     volumes:
       - ./.openclaw:/home/node/.openclaw
-      # Gateway needs FULL project access (not optimized like dev-server)
-      # - Required for editing all files (code, configs, docs, etc.)
-      # - Required for git operations (needs .git/, all tracked files)
-      # - Required for creating PRs, commits, editing documentation
+      # Shared project code — same as dev-server so both see the same files
       - ./:/home/node/projects
-      - openclaw_home:/home/node
+      - ./apps:/home/node/project/apps
+      - ./packages:/home/node/project/packages
+      - ./package.json:/home/node/project/package.json:ro
+      - ./pnpm-workspace.yaml:/home/node/project/pnpm-workspace.yaml:ro
+      - ./.git:/home/node/project/.git
+      - ./.gitignore:/home/node/project/.gitignore:ro
+      - ./README.md:/home/node/project/README.md:ro
       - ./data/${DEV_USER:-dev}/.openclaw-ssh:/home/node/.ssh
       - ./build/ssh-config:/home/node/.ssh/config:ro
     environment:
@@ -92,17 +95,17 @@ services:
     network_mode: "service:openclaw-gateway"
     volumes:
       - ./.openclaw:/home/node/.openclaw
-      # CLI needs FULL project access (same as gateway)
       - ./:/home/node/projects
-      - openclaw_home:/home/node
+      - ./apps:/home/node/project/apps
+      - ./packages:/home/node/project/packages
+      - ./package.json:/home/node/project/package.json:ro
+      - ./pnpm-workspace.yaml:/home/node/project/pnpm-workspace.yaml:ro
+      - ./.git:/home/node/project/.git
+      - ./.gitignore:/home/node/project/.gitignore:ro
     profiles:
       - cli
     stdin_open: true
     tty: true
-
-volumes:
-  openclaw_home:
-    name: ${PROJECT_NAME:-project}_openclaw_home
 
 networks:
   internal:
