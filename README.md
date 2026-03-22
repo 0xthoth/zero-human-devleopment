@@ -36,6 +36,58 @@ See [.openclaw/README.md](.openclaw/README.md) for complete setup instructions.
 | `#tt` | Tester | Testing tasks |
 | `#qa` | QA Lead | Code review |
 
+## 📦 Using with an Existing Project
+
+Have an existing codebase? You can use this template as the AI team layer:
+
+### 1. Clone template + add your code
+
+```bash
+git clone https://github.com/0xthoth/zero-human-devleopment.git my-project
+cd my-project
+rm -rf apps/* packages/*
+
+# Monorepo: copy your apps
+cp -r ~/existing-project/apps/* apps/
+cp -r ~/existing-project/packages/* packages/
+
+# Single app: put it in apps/web
+mkdir -p apps/web
+cp -r ~/existing-project/* apps/web/
+```
+
+### 2. Update agent knowledge
+
+Edit these files to match your tech stack:
+- `.openclaw/workspace-frontend/SOUL.md` — framework, styling, patterns
+- `.openclaw/workspace-backend/SOUL.md` — API framework, database, auth
+- `.openclaw/shared/TEAM-RULEBOOK.md` — project structure, conventions
+
+### 3. Adjust Docker mounts (if needed)
+
+The template mounts `./apps` and `./packages` into containers. If your project has additional root config files, add them to `docker-compose.yml`:
+
+```yaml
+# dev-server + gateway volumes:
+- ./tsconfig.json:/home/dev/project/tsconfig.json:ro
+- ./.eslintrc.js:/home/dev/project/.eslintrc.js:ro
+- ./turbo.json:/home/dev/project/turbo.json:ro
+```
+
+### 4. Package manager
+
+Template uses **pnpm**. If your project uses npm/yarn:
+- Option A: Convert to pnpm (`pnpm import`)
+- Option B: Change scripts in `package.json` and `Makefile` to use npm/yarn
+
+### 5. Setup as normal
+
+```bash
+make init
+make openclaw-config-setup
+make start
+```
+
 ## 📚 Documentation
 
 - [Setup Guide](.openclaw/README.md) — Full setup and architecture
