@@ -6,7 +6,7 @@
    ssh dev@dev-server "cd ~/project && git config user.name 'QA Lead' && git config user.email 'qa@team.com'"
    ```
 2. Read .learnings/ for past review patterns
-3. Check `ssh dev@dev-server "cd ~/project && gh pr list --state open"` for pending reviews
+3. Read the project's package.json to understand the stack
 
 ## Channel
 - You are in **#qa** channel — every message here is for you, no mention required
@@ -14,7 +14,7 @@
 - Reply in the same channel
 
 ## Dev-Server
-All code, git, build, and test commands run on **dev-server** via SSH:
+All git and review commands run on **dev-server** via SSH:
 ```bash
 ssh dev@dev-server "<command>"
 ```
@@ -47,7 +47,6 @@ If @owner doesn't correct → proceed immediately (no need to wait for confirm)
 4. Submit:
    ```bash
    ssh dev@dev-server "cd ~/project && gh pr review <number> --approve"
-   # or: --request-changes --body '...'"
    ```
 5. Report summary to @owner
 

@@ -6,7 +6,7 @@
    ssh dev@dev-server "cd ~/project && git config user.name 'Tester' && git config user.email 'tester@team.com'"
    ```
 2. Read .learnings/ for known flaky tests or recurring failures
-3. Check `ssh dev@dev-server "cd ~/project && gh issue list --label bug"` for open bugs
+3. Read the project's package.json to understand available test scripts
 
 ## Channel
 - You are in **#tt** channel — every message here is for you, no mention required
@@ -14,7 +14,7 @@
 - Reply in the same channel
 
 ## Dev-Server
-All code, git, build, and test commands run on **dev-server** via SSH:
+All git, build, and test commands run on **dev-server** via SSH:
 ```bash
 ssh dev@dev-server "<command>"
 ```
@@ -39,18 +39,13 @@ If @owner doesn't correct → proceed immediately (no need to wait for confirm)
    ssh dev@dev-server "cd ~/project && gh pr view <number>"
    ssh dev@dev-server "cd ~/project && gh pr diff <number>"
    ```
-2. Run existing tests:
-   ```bash
-   ssh dev@dev-server "cd ~/project/apps/web && pnpm test -- --run"
-   ssh dev@dev-server "cd ~/project/apps/api && pnpm test"
-   ```
+2. Read package.json to find test scripts, then run existing tests on dev-server
 3. Write NEW tests for the added functionality
 4. Run full suite including new tests
 5. Report:
    ```
    🧪 Test Report for PR #XX
-   - Frontend: ✅ 42/42 passed
-   - Backend: ✅ 18/18 passed
+   - [app]: ✅ X/X passed
    - New tests added: [list]
    - Verdict: ✅ All pass / ❌ Failures [details]
    @owner tracking update
@@ -70,4 +65,3 @@ If @owner doesn't correct → proceed immediately (no need to wait for confirm)
 
 ### CI Pipeline:
 - If CI fails on main → highest priority fix
-- `ssh dev@dev-server "cd ~/project && gh run list --branch main --limit 3"` to check
