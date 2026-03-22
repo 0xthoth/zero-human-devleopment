@@ -50,6 +50,36 @@ fi
 # --- Seed .bashrc (first run) ---
 if [ ! -f "${HOME_DIR}/.bashrc" ]; then
     cp /etc/skel/.bashrc "${HOME_DIR}/.bashrc"
+    cat >> "${HOME_DIR}/.bashrc" << 'TMUX_PROMPT'
+
+# --- Tmux session prompt on login ---
+if command -v tmux &>/dev/null && [ -z "$TMUX" ] && [ -t 0 ]; then
+  SESSIONS=$(tmux list-sessions 2>/dev/null)
+  if [ -n "$SESSIONS" ]; then
+    echo ""
+    echo "📺 Active tmux sessions:"
+    echo "$SESSIONS"
+    echo ""
+    read -p "Attach to existing session? (name/Y/n): " REPLY
+    case "$REPLY" in
+      n|N) ;;
+      y|Y|"") tmux attach ;;
+      *) tmux attach -t "$REPLY" 2>/dev/null || echo "Session not found" ;;
+    esac
+  else
+    echo ""
+    read -p "🖥️  No tmux sessions. Create one? (Y/n): " REPLY
+    case "$REPLY" in
+      n|N) ;;
+      *)
+        read -p "Session name [dev]: " SESS_NAME
+        SESS_NAME=${SESS_NAME:-dev}
+        tmux new-session -s "$SESS_NAME" -c ~/project
+        ;;
+    esac
+  fi
+fi
+TMUX_PROMPT
     chown "${DEV_USER}:${DEV_USER}" "${HOME_DIR}/.bashrc"
 fi
 

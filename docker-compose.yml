@@ -26,6 +26,8 @@ services:
       - ./apps:/home/${DEV_USER:-dev}/project/apps
       - ./packages:/home/${DEV_USER:-dev}/project/packages
       - ./package.json:/home/${DEV_USER:-dev}/project/package.json:ro
+      - ./pnpm-workspace.yaml:/home/${DEV_USER:-dev}/project/pnpm-workspace.yaml:ro
+      - ./pnpm-lock.yaml:/home/${DEV_USER:-dev}/project/pnpm-lock.yaml
       - ./package-lock.json:/home/${DEV_USER:-dev}/project/package-lock.json
       - ./node_modules:/home/${DEV_USER:-dev}/project/node_modules
       # Optional: mount additional config files if needed
