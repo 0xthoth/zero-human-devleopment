@@ -34,6 +34,9 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
     && apt-get update && apt-get install -y gh \
     && rm -rf /var/lib/apt/lists/*
 
+# Claude Code CLI
+RUN curl -fsSL https://claude.ai/install.sh | bash
+
 # code-server (browser IDE)
 RUN curl -fsSL https://code-server.dev/install.sh | sh
 
