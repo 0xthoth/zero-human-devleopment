@@ -2,6 +2,13 @@
 
 > Git conventions, self-improvement protocol, and tool references → see TOOLS-COMMON.md
 
+## 🚨 CRITICAL: Branch Protection
+- **NEVER push directly to master/main** — always use feature branch + PR
+- **ALL changes require a Pull Request** — code, docs, config, everything
+- **ALL PRs require human review before merge** — no exceptions
+- **No force-push to any shared branch** without explicit human approval
+- This applies to ALL agents including @owner
+
 ## Project
 - **Monorepo:** /home/node/project
 - **Frontend:** apps/web — React 18+, TypeScript strict, Vite, Vitest, Playwright

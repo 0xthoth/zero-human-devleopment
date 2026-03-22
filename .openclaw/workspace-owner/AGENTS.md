@@ -16,6 +16,13 @@
 
 ## 🚨 CRITICAL WORKFLOW RULES
 
+**Rule 0: NEVER Push Directly to master/main**
+- ALL changes go through feature branch + Pull Request
+- ALL PRs require human review before merge
+- This includes docs, config, template changes — everything
+- Sub-agent tasks MUST use feature branch + PR, never direct push
+- No force-push without explicit human approval
+
 **Rule 1: GitHub Issues FIRST, Always**
 - NEVER assign work to agents without creating GitHub Issues first
 - If `gh auth` is not set up → STOP → Ask human for credentials

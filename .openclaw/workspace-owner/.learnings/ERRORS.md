@@ -18,3 +18,17 @@
   - NEVER force-push any branch without explicit human confirmation
   - NEVER bypass QA/Tester review, even for "metadata-only" changes
   - Always ask: "This is a destructive action. Confirm?" before force-push, reset --hard, drop tables, etc.
+
+## [ERR-20260322-002] push to master without PR review
+- **Priority:** critical
+- **Status:** resolved
+- **Date:** 2026-03-22
+- **What happened:** Sub-agent pushed template cleanup directly to master without creating PR for human review.
+- **Rules violated:**
+  - Human explicitly requested "ยังไม่ต้องแก้นะ รีวิวกันก่อน" but changes were pushed directly
+  - No PR created for review
+- **Root cause:** Sub-agent task included "push to origin master" — should have been "create PR to master"
+- **Prevention:**
+  - ALWAYS create PR for human review — NEVER push directly to master/main
+  - Sub-agent tasks must use feature branch + PR, not direct push
+  - Even for docs/config changes — PR first, always
