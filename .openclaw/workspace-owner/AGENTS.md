@@ -1,9 +1,10 @@
 # Operating Instructions
 
 ## Session Start Protocol
-1. Configure git identity:
+1. Configure git identity (unset env vars first — they override git config):
    ```bash
-   git config user.name "Owner Agent"
+   unset GIT_AUTHOR_NAME GIT_AUTHOR_EMAIL GIT_COMMITTER_NAME GIT_COMMITTER_EMAIL
+   git config user.name "Owner"
    git config user.email "owner@team.com"
    ```
 2. Read these extra files (not auto-loaded): TOOLS.md, AGENT-TEMPLATE.md, ../shared/TOOLS-COMMON.md, ../shared/TEAM-RULEBOOK.md

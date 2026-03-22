@@ -33,6 +33,35 @@ The dev-server is an isolated Ubuntu container with Node.js, npm, git, and gh CL
 - Never run `git reset --hard` without human approval
 - Never commit secrets, .env files, or credentials
 
+## Tmux (Dev-Server)
+Agents run long commands on dev-server via tmux sessions.
+
+### Run a command in tmux:
+```bash
+ssh dev@dev-server "tmux new-session -d -s agent-<your-id> -c ~/project '<command>'"
+```
+
+### Check output:
+```bash
+ssh dev@dev-server "tmux capture-pane -t agent-<your-id> -p -S -50"
+```
+
+### List sessions:
+```bash
+ssh dev@dev-server "tmux ls"
+```
+
+### Kill session when done:
+```bash
+ssh dev@dev-server "tmux kill-session -t agent-<your-id>"
+```
+
+### When to use:
+- ✅ `npm run dev`, `npm test --watch`, builds, long-running processes
+- ❌ Quick one-off commands (use regular ssh exec instead)
+
+### Naming: `agent-<id>` (e.g. `agent-frontend`, `agent-backend`)
+
 ## File Operations
 - Read files before editing — never blindly overwrite
 - Use exec tool for shell commands
