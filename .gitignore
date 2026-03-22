@@ -66,3 +66,6 @@ backup.json
 # OS
 .DS_Store
 Thumbs.db
+
+# Per-workspace lockfiles (pnpm uses root pnpm-lock.yaml only)
+apps/*/package-lock.json
