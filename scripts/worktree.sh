@@ -36,9 +36,18 @@ case "$cmd" in
     mkdir -p "$WORKTREE_DIR"
     git worktree add -b "$branch" "$wt_path" "$base"
 
+    # Set git identity based on agent name
+    cd "$wt_path"
+    case "$agent" in
+      frontend) git config user.name "Frontend Dev" && git config user.email "frontend@team.com" ;;
+      backend)  git config user.name "Backend Dev"  && git config user.email "backend@team.com" ;;
+      tester)   git config user.name "Tester"       && git config user.email "tester@team.com" ;;
+      qa)       git config user.name "QA Lead"      && git config user.email "qa@team.com" ;;
+      *)        git config user.name "$agent"       && git config user.email "$agent@team.com" ;;
+    esac
+
     # Install dependencies
     echo "📦 Installing dependencies..."
-    cd "$wt_path"
     pnpm install --frozen-lockfile 2>/dev/null || pnpm install
 
     echo ""
@@ -46,6 +55,7 @@ case "$cmd" in
     echo "   Path:   $wt_path"
     echo "   Branch: $branch"
     echo "   Base:   $base"
+    echo "   Git:    $(git config user.name) <$(git config user.email)>"
     ;;
 
   remove)
