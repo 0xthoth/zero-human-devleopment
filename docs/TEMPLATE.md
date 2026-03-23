@@ -139,7 +139,10 @@ make init
 - **Gateway Container**: Runs OpenClaw agents and web UI (full project mount)
 - **Dev Container**: Development environment with VS Code Server, Node.js, and tools (optimized mount: apps/ only)
 
-**Volume optimization:** The dev-server only mounts `apps/`, `packages/`, and essential config files for builds/tests. The gateway has full project access for editing all files and git operations. This improves security and reduces file watching overhead.
+**Volumes:**
+- Dev-server mounts the entire project root for full git compatibility
+- Persistent `worktrees` volume for agent parallel work (survives container restarts)
+- Gateway has full project access for editing all files and git operations
 
 ### Agent Roles
 
@@ -148,6 +151,39 @@ make init
 3. **Frontend Dev** (Claude Sonnet 4.5) - React, UI/UX, accessibility
 4. **Backend Dev** (Claude Sonnet 4.5) - NestJS, APIs, database
 5. **Tester** (Claude Sonnet 4.5) - Test implementation, E2E tests
+
+### Git Worktrees (Parallel Development)
+
+Agents use Git Worktrees so they can work simultaneously on different branches without conflicts.
+
+```
+~/project/              ← main branch (human / Owner)
+~/worktrees/
+├── frontend/           ← feat/fe-xxx (isolated checkout)
+├── backend/            ← feat/be-xxx (isolated checkout)
+└── tester/             ← feat/tt-xxx (isolated checkout)
+```
+
+**Workflow:**
+1. Agent receives task → `scripts/worktree.sh create <agent> <branch>`
+2. Worktree created with own branch + `pnpm install` + git identity
+3. Agent works in `~/worktrees/<agent>/`
+4. Push + create PR
+5. `scripts/worktree.sh remove <agent>` → cleanup
+
+**Benefits:**
+- Multiple agents code in parallel (no branch conflicts)
+- Human developers can work alongside agents
+- Git identity auto-set per agent (correct commit attribution)
+- Worktrees are ephemeral — created per task, removed after PR
+
+**Helper commands:**
+```bash
+scripts/worktree.sh create frontend feat/fe-login  # Create
+scripts/worktree.sh list                            # List active
+scripts/worktree.sh remove frontend                 # Remove one
+scripts/worktree.sh clean                           # Remove all
+```
 
 ### Available Skills
 
