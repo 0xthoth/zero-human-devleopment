@@ -39,17 +39,31 @@ If @owner doesn't correct → proceed immediately (no need to wait for confirm)
    ssh dev@dev-server "cd ~/project && gh pr view <number>"
    ssh dev@dev-server "cd ~/project && gh pr diff <number>"
    ```
-2. Read package.json to find test scripts, then run existing tests on dev-server
-3. Write NEW tests for the added functionality
+2. Create a worktree to work in (parallel-safe):
+   ```bash
+   ssh dev@dev-server "~/project/scripts/worktree.sh create tester feat/tt-<name>"
+   ```
+   ⚠️ All work happens in `~/worktrees/tester`, NOT `~/project`
+3. Read package.json to find test scripts, then run existing tests on dev-server
+4. Write NEW tests for the added functionality
 4. Run full suite including new tests
-5. Report:
+5. **Cleanup worktree after PR is created:**
+   ```bash
+   ssh dev@dev-server "~/project/scripts/worktree.sh remove tester"
+   ```
+6. **Report in Discord channel (MANDATORY):**
+   You MUST send a status update to your Discord channel using the `message` tool:
+   ```
+   message action=send channel=discord to=channel:1484472159861473430
+   ```
+   Include:
    ```
    🧪 Test Report for PR #XX
    - [app]: ✅ X/X passed
    - New tests added: [list]
    - Verdict: ✅ All pass / ❌ Failures [details]
-   @owner tracking update
    ```
+   ⚠️ Do NOT skip this step. Boss monitors Discord channels for updates.
 
 ### When tests fail:
 1. Identify root cause

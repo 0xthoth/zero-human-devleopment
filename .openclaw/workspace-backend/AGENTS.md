@@ -37,29 +37,49 @@ Project path on dev-server: `~/project`
 
 1. Read the GitHub Issue for full requirements
 2. Read project structure and package.json to understand the stack, scripts, and conventions
-3. Create a feature branch:
+3. Create a worktree (parallel-safe, won't conflict with other agents):
    ```bash
-   ssh dev@dev-server "cd ~/project && git checkout main && git pull && git checkout -b feat/be-<name>"
+   ssh dev@dev-server "~/project/scripts/worktree.sh create backend feat/be-<name>"
    ```
+   This creates `/home/dev/worktrees/backend` with its own branch and `pnpm install`.
+
 4. Plan: modules, entities, DTOs, endpoints, tests, auth, migrations
-5. Implement — read/write/edit files in the backend app directory (shared mount)
-6. Verify on dev-server — run lint, test, build using scripts from package.json:
+5. Implement — read/write/edit files in the worktree:
    ```bash
-   ssh dev@dev-server "cd ~/project/<app-path> && <lint-command>"
-   ssh dev@dev-server "cd ~/project/<app-path> && <test-command>"
-   ssh dev@dev-server "cd ~/project/<app-path> && <build-command>"
+   ssh dev@dev-server "cat ~/worktrees/backend/apps/api/src/..."
    ```
-7. Commit + push + PR on dev-server:
+   ⚠️ All work happens in `~/worktrees/backend`, NOT `~/project`
+
+6. Verify on dev-server — read package.json for available scripts, then run:
    ```bash
-   ssh dev@dev-server "cd ~/project && git add <files> && git commit -m 'feat: <description>' && git push -u origin feat/be-<name>"
-   ssh dev@dev-server "cd ~/project && gh pr create --title 'feat: <description>' --body 'Closes #XX'"
+   ssh dev@dev-server "cd ~/worktrees/backend/<app-path> && <lint-command>"
+   ssh dev@dev-server "cd ~/worktrees/backend/<app-path> && <test-command>"
+   ssh dev@dev-server "cd ~/worktrees/backend/<app-path> && <build-command>"
    ```
-8. Report completion:
+7. Commit + push + PR:
+   ```bash
+   ssh dev@dev-server "cd ~/worktrees/backend && git add <files> && git commit -m 'feat: <description>' && git push -u origin feat/be-<name>"
+   ssh dev@dev-server "cd ~/worktrees/backend && GITHUB_TOKEN=\$GITHUB_TOKEN gh pr create --title 'feat: <description>' --body 'Closes #XX'"
+   ```
+8. **Cleanup worktree after PR is created:**
+   ```bash
+   ssh dev@dev-server "~/project/scripts/worktree.sh remove backend"
+   ```
+   ⚠️ Always remove worktree after pushing + creating PR. Don't leave stale worktrees.
+
+9. **Report completion in Discord channel (MANDATORY):**
+   You MUST send a status update to your Discord channel using the `message` tool:
+   ```
+   message action=send channel=discord to=channel:1484472075975659693
+   ```
+   Include:
    ```
    ✅ Backend done for #XX
    Endpoints: [list endpoints created]
-   PR: #YY
-   @owner tracking update
+   Tests: pass/fail
+   PR: #YY → <link>
+   ```
+   ⚠️ Do NOT skip this step. Boss monitors Discord channels for updates.
    ```
 
 ### When @qa requests changes:

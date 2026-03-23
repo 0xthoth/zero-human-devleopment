@@ -15,11 +15,13 @@ A complete OpenClaw configuration featuring 5 specialized AI agents working toge
 ## ✨ Features
 
 - 🎯 **Per-Agent Channel Routing** - Each agent has its own Discord channel (#fe, #be, #tt, #qa), no @mention needed
+- 🔀 **Git Worktrees** - Agents work in parallel on different branches without conflicts
 - 🛠️ **Smart Skill Distribution** - Shared + agent-specific skills
-- 🎭 **Git Identity** - Each agent commits with unique identity
+- 🎭 **Git Identity** - Each agent commits with unique identity (auto-configured per worktree)
 - 🧪 **Playwright CI/CD** - Full E2E testing integration
 - 📺 **Tmux Monitoring** - Watch agents work in real-time
 - 🧠 **Learning System** - Agents learn from past mistakes
+- 👥 **Multi-Team Ready** - Multiple OpenClaw instances can share the same repo via Git
 
 ## 🚀 Quick Start
 
@@ -81,6 +83,57 @@ git commit -m "chore: update infra from template"
 
 ### Never overwrite
 `apps/`, `packages/`, `.env`, `.openclaw/openclaw.json`, `.openclaw/workspace-*/memory/`
+
+## 🔀 Git Worktrees (Parallel Development)
+
+Agents use Git Worktrees to work simultaneously on different branches:
+
+```
+~/project/              ← main branch (human works here)
+~/worktrees/
+├── frontend/           ← feat/fe-xxx (Frontend agent)
+├── backend/            ← feat/be-xxx (Backend agent)
+└── tester/             ← feat/tt-xxx (Tester agent)
+```
+
+**Helper script:**
+```bash
+# Create worktree (auto-installs deps + sets git identity)
+scripts/worktree.sh create frontend feat/fe-login
+
+# List active worktrees
+scripts/worktree.sh list
+
+# Remove after PR is created
+scripts/worktree.sh remove frontend
+
+# Clean all worktrees
+scripts/worktree.sh clean
+```
+
+**Benefits:**
+- ✅ All agents work in parallel — no branch conflicts
+- ✅ Human + agents can code at the same time
+- ✅ Git identity auto-configured per agent
+- ✅ Worktrees cleaned up after PR creation
+
+## 👥 Multi-Team Collaboration
+
+Multiple teams (each with their own OpenClaw instance) can work on the same project:
+
+```
+Team A (Dev)              Team B (Design)
+├── OpenClaw Instance A   ├── OpenClaw Instance B
+├── Own agents & config   ├── Own agents & config
+├── Own API keys          ├── Own API keys
+└── feat/dev-xxx          └── feat/design-xxx
+         │                         │
+         └──── Same GitHub Repo ───┘
+                     │
+                   PRs + Review
+```
+
+Each team just clones the repo, sets up their own `.env` and agents, and collaborates via Git PRs.
 
 ## 📚 Documentation
 
