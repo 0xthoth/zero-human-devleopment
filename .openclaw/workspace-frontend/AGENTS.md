@@ -50,11 +50,11 @@ Project path on dev-server: `~/project`
    ```
    ⚠️ All work happens in `~/worktrees/frontend`, NOT `~/project`
 
-6. Verify on dev-server — run lint, test, build:
+6. Verify on dev-server — read package.json for available scripts, then run:
    ```bash
-   ssh dev@dev-server "cd ~/worktrees/frontend && pnpm --filter web lint"
-   ssh dev@dev-server "cd ~/worktrees/frontend && pnpm --filter web test"
-   ssh dev@dev-server "cd ~/worktrees/frontend && pnpm --filter web build"
+   ssh dev@dev-server "cd ~/worktrees/frontend/<app-path> && <lint-command>"
+   ssh dev@dev-server "cd ~/worktrees/frontend/<app-path> && <test-command>"
+   ssh dev@dev-server "cd ~/worktrees/frontend/<app-path> && <build-command>"
    ```
 7. Commit + push + PR:
    ```bash
