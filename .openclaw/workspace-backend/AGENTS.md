@@ -61,7 +61,13 @@ Project path on dev-server: `~/project`
    ssh dev@dev-server "cd ~/worktrees/backend && git add <files> && git commit -m 'feat: <description>' && git push -u origin feat/be-<name>"
    ssh dev@dev-server "cd ~/worktrees/backend && GITHUB_TOKEN=\$GITHUB_TOKEN gh pr create --title 'feat: <description>' --body 'Closes #XX'"
    ```
-8. **Report completion in Discord channel (MANDATORY):**
+8. **Cleanup worktree after PR is created:**
+   ```bash
+   ssh dev@dev-server "~/project/scripts/worktree.sh remove backend"
+   ```
+   ⚠️ Always remove worktree after pushing + creating PR. Don't leave stale worktrees.
+
+9. **Report completion in Discord channel (MANDATORY):**
    You MUST send a status update to your Discord channel using the `message` tool:
    ```
    message action=send channel=discord to=channel:1484472075975659693
